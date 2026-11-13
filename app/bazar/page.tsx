@@ -126,7 +126,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
         <FiltersToggle defaultOpen={anyFilter}>
             <Select id="druh" label="Druh" value={sp.druh} options={(categories ?? []).map((c): [string, string] => [c.code, c.name])} all="Všechny druhy" />
             <Select id="sirka" label="Šířka" value={sp.sirka} options={Object.entries(WIDTH_LABEL)} all="Vše" />
-            <Select id="stav" label="Stav nejhůř" value={sp.stav} options={Object.entries(CONDITION_LABEL).filter(([k]) => k !== 'hodne_nosene')} all="Vše" />
+            <Select id="stav" label="Stav" value={sp.stav} options={Object.entries(CONDITION_LABEL).filter(([k]) => k !== 'hodne_nosene')} all="Vše" />
             <div className="flex flex-col gap-1.5">
               <label htmlFor="znacka" className="text-sm font-bold">Značka</label>
               <input id="znacka" name="znacka" type="text" defaultValue={sp.znacka} placeholder="např. Be Lenka" className={inputClass} />
