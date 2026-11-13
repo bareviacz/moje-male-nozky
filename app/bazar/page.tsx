@@ -153,7 +153,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
 
       <section className="flex flex-col gap-4" aria-labelledby="nabidka">
         <div className="flex flex-col gap-1">
-          <h1 id="nabidka" className="font-display text-[28px] leading-tight font-bold text-balance">Obnošené barefoot botičky</h1>
+          <h1 id="nabidka" className="font-display text-[28px] leading-tight font-bold text-balance">Bazarové barefoot botičky</h1>
           <p className="text-sm text-muted tabular-nums" aria-live="polite">
             {r
               ? `${listings.length} párů s vnitřní délkou ${r.min}–${r.max} mm${kid ? ` pro ${kid.name}` : ''}.`

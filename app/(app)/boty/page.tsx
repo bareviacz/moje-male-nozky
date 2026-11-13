@@ -148,7 +148,7 @@ export default async function ShoesPage({
       >
         <span>
           <strong>Bazárek Barevia:</strong>{' '}
-          {showRetired ? 'boty, ze kterých děti vyrostly, prodáte jedním klepnutím.' : 'obnošené barefoot boty vybrané podle délky nožky.'}
+          {showRetired ? 'boty, ze kterých děti vyrostly, prodáte jedním klepnutím.' : 'bazarové barefoot boty vybrané podle délky nožky.'}
         </span>
         <span aria-hidden="true" className="font-bold">→</span>
       </Link>

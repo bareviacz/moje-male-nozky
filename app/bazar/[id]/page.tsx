@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const title = `${listingTitle(l)}, EU ${formatEu(l.size_eu)} – ${formatCzk(l.price_czk)}`
   return {
     title,
-    description: `Obnošené barefoot boty ${listingTitle(l)}, vnitřní délka ${l.inner_length_mm} mm, stav: ${CONDITION_LABEL[l.condition].toLowerCase()}.`,
+    description: `Bazarové barefoot boty ${listingTitle(l)}, vnitřní délka ${l.inner_length_mm} mm, stav: ${CONDITION_LABEL[l.condition].toLowerCase()}.`,
     openGraph: cover ? { title, images: [publicPhotoUrl(cover.storage_path)] } : { title },
   }
 }

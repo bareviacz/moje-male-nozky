@@ -57,7 +57,7 @@ export default function HomePage() {
             </Link>
           </div>
           <Link href="/bazar" className="text-center text-[15px] font-bold text-forest underline">
-            Bazárek: obnošené barefoot botičky od rodičů
+            Bazárek: bazarové barefoot botičky od rodičů
           </Link>
         </div>
       </div>

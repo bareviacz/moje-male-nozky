@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
   title: {
-    absolute: 'Bazárek Barevia – obnošené barefoot botičky',
+    absolute: 'Bazárek Barevia – bazarové barefoot botičky',
     template: '%s · Bazárek Barevia',
   },
   description:
