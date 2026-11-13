@@ -80,7 +80,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
 
   const [{ data: other }, { data: pay }, { data: review }, { data: messages }, { data: contacts }] = await Promise.all([
     supabase.from('bazar_sellers').select('nickname').eq('user_id', otherId).maybeSingle(),
-    isBuyer && !['ceka_na_postovne', 'zruseno'].includes(o.status)
+    (isBuyer || isSeller) && o.status !== 'zruseno'
       ? supabase.rpc('bazar_get_payment_details', { p_order_id: o.id })
       : Promise.resolve({ data: null }),
     supabase.from('bazar_reviews').select('rating').eq('order_id', o.id).maybeSingle(),
@@ -156,17 +156,21 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       {/* ---------- Kupující ---------- */}
       {isBuyer && o.status === 'ceka_na_postovne' && (
         <Card className="flex flex-col gap-3 p-5">
-          <p className="font-bold">Boty máte rezervované. Teď je potřeba zaplatit poštovné {formatCzk(o.shipping_czk)}.</p>
+          <p className="font-bold">Boty máte rezervované. Zbývá zaplatit poštovné {formatCzk(o.shipping_czk)} Barevii.</p>
           <p className="text-sm leading-relaxed text-muted">
-            Platbu poštovného kartou právě zapojujeme. Do té doby vám Barevia pošle platební údaje e-mailem. Jakmile poštovné dorazí,
-            uvidíte tady QR kód pro platbu prodejci.
+            Platbu poštovného kartou právě zapojujeme. Do té doby vám Barevia pošle platební údaje e-mailem. Za boty můžete prodejci
+            zaplatit už teď QR kódem níže.
           </p>
         </Card>
       )}
 
-      {isBuyer && payment && !['dokonceno', 'zruseno'].includes(o.status) && (
+      {payment && (isBuyer || isSeller) && !['dokonceno', 'zruseno'].includes(o.status) && (
         <Card className="flex flex-col gap-4 p-5">
-          <p className="font-bold">Zaplaťte {formatCzk(payment.amount_czk)} prodejci {payment.seller_nickname}</p>
+          <p className="font-bold">
+            {isBuyer
+              ? `Zaplaťte ${formatCzk(payment.amount_czk)} prodejci ${payment.seller_nickname}`
+              : `Platba za boty od kupujícího: ${formatCzk(payment.amount_czk)}`}
+          </p>
           <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             {qr && <PaymentQr text={qr} />}
             <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[15px] tabular-nums">
@@ -178,7 +182,11 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               <dd className="font-bold">{payment.variable_symbol}</dd>
             </dl>
           </div>
-          <p className="text-sm text-muted">Naskenujte QR kód v aplikaci banky. Prodejce boty odešle, jakmile mu platba dorazí.</p>
+          <p className="text-sm text-muted">
+            {isBuyer
+              ? 'Naskenujte QR kód v aplikaci banky. Prodejce boty odešle, jakmile mu platba dorazí.'
+              : 'Tento QR kód vidí kupující. Platbu na svém účtu poznáte podle variabilního symbolu. Kdyby kupujícímu něco nešlo, můžete mu QR kód ukázat nebo přeposlat.'}
+          </p>
         </Card>
       )}
 
