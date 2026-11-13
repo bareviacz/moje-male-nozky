@@ -122,7 +122,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           <span className="font-bold">{l ? listingTitle(l) : 'Boty'}</span>
           <span className="text-sm text-muted tabular-nums">
             {l && `EU ${formatEu(l.size_eu)} · `}
-            {formatCzk(o.price_czk)} · {isBuyer ? `od ${other?.nickname ?? 'prodejce'}` : `pro ${o.buyer_name}`}
+            {formatCzk(o.price_czk)}{o.shipping_czk > 0 ? ` + poštovné ${formatCzk(o.shipping_czk)}` : ''} · {isBuyer ? `od ${other?.nickname ?? 'prodejce'}` : `pro ${o.buyer_name}`}
           </span>
           <span className="text-sm text-muted">Doručení: {o.pickup_point_name}</span>
         </div>
@@ -156,7 +156,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       {/* ---------- Kupující ---------- */}
       {isBuyer && o.status === 'ceka_na_postovne' && (
         <p className="rounded-2xl bg-forest-soft px-4 py-3 text-[15px] font-semibold text-forest">
-          Boty máte rezervované. Zaplaťte prodejci QR kódem níže a o poštovném se zatím domluvte s prodejcem (kontakt najdete výše).
+          Boty máte rezervované. Zaplaťte prodejci QR kódem níže, částka už obsahuje poštovné.
         </p>
       )}
       {isBuyer && o.status === 'na_ceste' && (
@@ -205,10 +205,13 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       {/* ---------- Prodávající ---------- */}
       {isSeller && ['ceka_na_postovne', 'postovne_zaplaceno', 'k_odeslani'].includes(o.status) && (
         <Card className="flex flex-col gap-3 border-[1.5px] border-sun p-5">
-          <p className="font-bold">Až vám přijde {formatCzk(o.price_czk)}, pošlete boty a označte je jako odeslané.</p>
+          <p className="font-bold">
+            Až vám přijde {formatCzk(o.price_czk + o.shipping_czk)}
+            {o.shipping_czk > 0 && <span className="font-normal"> ({formatCzk(o.price_czk)} za boty + {formatCzk(o.shipping_czk)} poštovné)</span>}, pošlete boty a označte je jako odeslané.
+          </p>
           <p className="text-sm leading-relaxed text-muted">
             Pošlete je na výdejní místo <strong className="text-ink">{o.pickup_point_name}</strong> pro {o.buyer_name}, třeba přes
-            aplikaci Zásilkovny nebo Balíkovny. O poštovném se zatím domluvte s kupujícím.
+            aplikaci Zásilkovny nebo Balíkovny. Poštovné zaplatíte z částky, kterou vám pošle kupující.
           </p>
           {o.submission_code && (
             <p className="text-sm">
@@ -234,7 +237,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           <Steps
             status={o.status}
             steps={[
-              ['ceka_na_postovne', 'Rezervováno', 'Kupující platí prodejci QR kódem.'],
+              ['ceka_na_postovne', 'Rezervováno', 'Kupující platí prodejci QR kódem (boty + poštovné).'],
               ['na_ceste', 'Odesláno', 'Prodejce poslal boty na vybrané výdejní místo.'],
               ['dokonceno', 'Hotovo', 'Kupující potvrdí převzetí a ohodnotí prodejce.'],
             ]}

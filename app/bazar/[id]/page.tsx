@@ -8,6 +8,7 @@ import { MessageForm, ReportForm } from '@/components/bazar/SmallForms'
 import { SubmitButton } from '@/components/SubmitButton'
 import { btn, Card, cx, FormMessage } from '@/components/ui'
 import {
+  BAZAR_SHIPPING_CZK,
   CONDITION_LABEL,
   fitRange,
   formatCzk,
@@ -109,7 +110,7 @@ export default async function ListingPage({
               <h1 className="font-display text-[28px] leading-tight font-bold text-balance">{listingTitle(l)}</h1>
               <p className="font-display text-3xl font-bold tabular-nums">
                 {formatCzk(l.price_czk)}{' '}
-                <span className="font-sans text-sm font-semibold text-muted">+ poštovné dle domluvy</span>
+                <span className="font-sans text-sm font-semibold text-muted">+ poštovné {formatCzk(BAZAR_SHIPPING_CZK)}</span>
               </p>
             </div>
 

@@ -3,7 +3,7 @@
 import Script from 'next/script'
 import { useActionState, useState } from 'react'
 import { createOrder } from '@/app/bazar/actions'
-import { formatCzk } from '@/lib/bazar'
+import { BAZAR_SHIPPING_CZK, formatCzk } from '@/lib/bazar'
 import type { FormState } from '@/lib/forms'
 import { SubmitButton } from '../SubmitButton'
 import { btn, Field, FormMessage, inputClass } from '../ui'
@@ -92,12 +92,16 @@ export function BuyForm({
 
       <dl className="flex flex-col gap-1.5 rounded-2xl bg-white p-4 text-[15px] ring-1 ring-line tabular-nums">
         <div className="flex justify-between gap-3">
-          <dt className="font-bold">Boty, platíte QR platbou prodejci</dt>
-          <dd className="font-bold">{formatCzk(price)}</dd>
+          <dt>Boty</dt>
+          <dd>{formatCzk(price)}</dd>
         </div>
-        <div className="flex justify-between gap-3 text-sm text-muted">
+        <div className="flex justify-between gap-3">
           <dt>Poštovné</dt>
-          <dd>domluvíte s prodejcem</dd>
+          <dd>{formatCzk(BAZAR_SHIPPING_CZK)}</dd>
+        </div>
+        <div className="flex justify-between gap-3 border-t border-line pt-1.5">
+          <dt className="font-bold">Celkem, platíte QR platbou prodejci</dt>
+          <dd className="font-bold">{formatCzk(price + BAZAR_SHIPPING_CZK)}</dd>
         </div>
       </dl>
       <p className="text-[13px] leading-relaxed text-muted">
