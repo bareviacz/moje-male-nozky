@@ -20,8 +20,8 @@ export default async function BazarLayout({ children }: { children: React.ReactN
   let todo = 0
   if (user) {
     const [{ count: toShip }, { count: toPay }] = await Promise.all([
-      supabase.from('bazar_orders').select('id', { count: 'exact', head: true }).eq('seller_id', user.id).eq('status', 'k_odeslani'),
-      supabase.from('bazar_orders').select('id', { count: 'exact', head: true }).eq('buyer_id', user.id).eq('status', 'postovne_zaplaceno'),
+      supabase.from('bazar_orders').select('id', { count: 'exact', head: true }).eq('seller_id', user.id).in('status', ['ceka_na_postovne', 'postovne_zaplaceno', 'k_odeslani']),
+      supabase.from('bazar_orders').select('id', { count: 'exact', head: true }).eq('buyer_id', user.id).eq('status', 'ceka_na_postovne'),
     ])
     todo = (toShip ?? 0) + (toPay ?? 0)
   }

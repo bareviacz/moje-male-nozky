@@ -43,7 +43,7 @@ export const PHOTO_KIND_LABEL: Record<BazarPhotoKind, string> = {
 }
 
 export const ORDER_STATUS_LABEL: Record<BazarOrderStatus, string> = {
-  ceka_na_postovne: 'Čeká na poštovné',
+  ceka_na_postovne: 'Rezervováno',
   postovne_zaplaceno: 'Poštovné zaplaceno',
   k_odeslani: 'K odeslání',
   na_ceste: 'Na cestě',

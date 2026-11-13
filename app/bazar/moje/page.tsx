@@ -17,8 +17,8 @@ import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = { title: 'Moje prodeje a nákupy', robots: { index: false } }
 
-const TODO_SELLER: BazarOrderStatus[] = ['k_odeslani']
-const TODO_BUYER: BazarOrderStatus[] = ['postovne_zaplaceno']
+const TODO_SELLER: BazarOrderStatus[] = ['ceka_na_postovne', 'postovne_zaplaceno', 'k_odeslani']
+const TODO_BUYER: BazarOrderStatus[] = ['ceka_na_postovne', 'postovne_zaplaceno', 'k_odeslani']
 
 function Thumb({ path }: { path?: string }) {
   return path ? (
@@ -102,7 +102,7 @@ export default async function MinePage() {
             {who}
           </span>
           <span className={cx('self-start rounded-[10px] px-2 py-0.5 text-xs font-bold', todo ? 'bg-sun text-sun-deep' : 'bg-ground ring-1 ring-line')}>
-            {todo ? (o.status === 'k_odeslani' ? 'Odešlete balík' : 'Zaplaťte boty prodejci') : ORDER_STATUS_LABEL[o.status]}
+            {todo ? (who.startsWith('pro ') ? 'Pošlete boty' : 'Zaplaťte prodejci') : ORDER_STATUS_LABEL[o.status]}
           </span>
         </div>
       </Link>

@@ -130,6 +130,7 @@ export type Database = {
           shipping_czk: number
           status: Database["public"]["Enums"]["bazar_order_status"]
           submission_code: string | null
+          tracking_info: string | null
           updated_at: string
         }
         Insert: {
@@ -152,6 +153,7 @@ export type Database = {
           shipping_czk: number
           status?: Database["public"]["Enums"]["bazar_order_status"]
           submission_code?: string | null
+          tracking_info?: string | null
           updated_at?: string
         }
         Update: {
@@ -174,6 +176,7 @@ export type Database = {
           shipping_czk?: number
           status?: Database["public"]["Enums"]["bazar_order_status"]
           submission_code?: string | null
+          tracking_info?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -666,6 +669,7 @@ export type Database = {
         }
         Returns: string
       }
+      bazar_mark_shipped: { Args: { p_order_id: string; p_tracking?: string }; Returns: undefined }
       bazar_get_order_contacts: {
         Args: { p_order_id: string }
         Returns: { email: string; nickname: string; phone: string | null; role: string }[]

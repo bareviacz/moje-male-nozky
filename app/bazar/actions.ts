@@ -214,6 +214,17 @@ export async function cancelOrder(_: FormState, formData: FormData): Promise<For
   redirect(`/bazar/objednavka/${id}`)
 }
 
+export async function markShipped(_: FormState, formData: FormData): Promise<FormState> {
+  const id = str(formData, 'order_id')
+  const tracking = str(formData, 'tracking').slice(0, 120)
+  if (!isUuid(id)) return fail(formData, dbErrorCs())
+  const { supabase } = await requireBazarUser(`/bazar/objednavka/${id}`)
+  const { error } = await supabase.rpc('bazar_mark_shipped', { p_order_id: id, p_tracking: tracking || undefined })
+  if (error) return fail(formData, 'Objednávku se nepodařilo označit jako odeslanou.')
+  revalidatePath('/bazar', 'layout')
+  return { success: 'Hotovo, kupující dostal zprávu, že boty jsou na cestě.' }
+}
+
 export async function confirmReceived(formData: FormData) {
   const id = str(formData, 'order_id')
   if (!isUuid(id)) return

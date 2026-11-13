@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { cancelOrder, reportListing, sendMessage, sendReview } from '@/app/bazar/actions'
+import { cancelOrder, markShipped, reportListing, sendMessage, sendReview } from '@/app/bazar/actions'
 import { SubmitButton } from '../SubmitButton'
 import { cx, FormMessage, inputClass } from '../ui'
 
@@ -106,6 +106,22 @@ export function CancelOrderForm({ orderId, paid }: { orderId: string; paid: bool
           Nerušit
         </button>
       </div>
+    </form>
+  )
+}
+
+export function ShippedForm({ orderId }: { orderId: string }) {
+  const [state, action] = useActionState(markShipped, undefined)
+  if (state?.success) return <FormMessage success={state.success} />
+  return (
+    <form action={action} className="flex flex-col gap-2.5">
+      <input type="hidden" name="order_id" value={orderId} />
+      <label htmlFor={`tracking-${orderId}`} className="text-sm font-bold">
+        Číslo zásilky <span className="font-normal text-muted">(nepovinné)</span>
+      </label>
+      <input id={`tracking-${orderId}`} name="tracking" type="text" maxLength={120} placeholder="např. Z 123 4567 890" className={inputClass} />
+      <FormMessage error={state?.error} />
+      <SubmitButton pendingText="Ukládám…">Boty jsem odeslal/a</SubmitButton>
     </form>
   )
 }

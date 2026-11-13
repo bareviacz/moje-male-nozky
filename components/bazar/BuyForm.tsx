@@ -3,7 +3,7 @@
 import Script from 'next/script'
 import { useActionState, useState } from 'react'
 import { createOrder } from '@/app/bazar/actions'
-import { BAZAR_SHIPPING_CZK, formatCzk } from '@/lib/bazar'
+import { formatCzk } from '@/lib/bazar'
 import type { FormState } from '@/lib/forms'
 import { SubmitButton } from '../SubmitButton'
 import { btn, Field, FormMessage, inputClass } from '../ui'
@@ -92,21 +92,17 @@ export function BuyForm({
 
       <dl className="flex flex-col gap-1.5 rounded-2xl bg-white p-4 text-[15px] ring-1 ring-line tabular-nums">
         <div className="flex justify-between gap-3">
-          <dt>Poštovné, platíte Barevii</dt>
-          <dd className="font-bold">{formatCzk(BAZAR_SHIPPING_CZK)}</dd>
-        </div>
-        <div className="flex justify-between gap-3">
-          <dt>Boty, platíte QR platbou prodejci</dt>
+          <dt className="font-bold">Boty, platíte QR platbou prodejci</dt>
           <dd className="font-bold">{formatCzk(price)}</dd>
         </div>
-        <div className="flex justify-between gap-3 border-t border-line pt-1.5">
-          <dt className="font-bold">Celkem</dt>
-          <dd className="font-bold">{formatCzk(price + BAZAR_SHIPPING_CZK)}</dd>
+        <div className="flex justify-between gap-3 text-sm text-muted">
+          <dt>Poštovné</dt>
+          <dd>domluvíte s prodejcem</dd>
         </div>
       </dl>
       <p className="text-[13px] leading-relaxed text-muted">
-        Objednáním si boty rezervujete a vy i prodejce uvidíte navzájem e-mail a telefon. Po zaplacení poštovného uvidíte QR kód pro platbu prodejci a prodejce dostane kód
-        k odeslání. Kupujete od soukromé osoby, proto se na nákup nevztahuje 14denní lhůta pro vrácení.
+        Objednáním si boty rezervujete a hned uvidíte QR kód pro platbu prodejci. Vy i prodejce uvidíte navzájem e-mail
+        a telefon. Kupujete od soukromé osoby, proto se na nákup nevztahuje 14denní lhůta pro vrácení.
       </p>
 
       <FormMessage error={state?.error} />

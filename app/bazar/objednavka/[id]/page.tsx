@@ -4,7 +4,7 @@ import { notFound, redirect } from 'next/navigation'
 import { confirmReceived } from '@/app/bazar/actions'
 import { coverPhoto } from '@/components/bazar/ListingCard'
 import { PaymentQr } from '@/components/bazar/PaymentQr'
-import { CancelOrderForm, MessageForm, ReviewForm } from '@/components/bazar/SmallForms'
+import { CancelOrderForm, MessageForm, ReviewForm, ShippedForm } from '@/components/bazar/SmallForms'
 import { SubmitButton } from '@/components/SubmitButton'
 import { Card, cx, PageTitle } from '@/components/ui'
 import {
@@ -67,7 +67,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const { data: o } = await supabase
     .from('bazar_orders')
     .select(
-      'id, status, buyer_id, seller_id, buyer_name, cancelled_by, cancel_reason, price_czk, shipping_czk, pickup_point_name, submission_code, packeta_barcode, created_at, listing_id, bazar_listings(id, brand, model, size_eu, inner_length_mm, bazar_listing_photos(storage_path, kind, position))',
+      'id, status, buyer_id, seller_id, buyer_name, cancelled_by, cancel_reason, tracking_info, price_czk, shipping_czk, pickup_point_name, submission_code, packeta_barcode, created_at, listing_id, bazar_listings(id, brand, model, size_eu, inner_length_mm, bazar_listing_photos(storage_path, kind, position))',
     )
     .eq('id', id)
     .maybeSingle()
@@ -155,16 +155,17 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
 
       {/* ---------- Kupující ---------- */}
       {isBuyer && o.status === 'ceka_na_postovne' && (
-        <Card className="flex flex-col gap-3 p-5">
-          <p className="font-bold">Boty máte rezervované. Zbývá zaplatit poštovné {formatCzk(o.shipping_czk)} Barevii.</p>
-          <p className="text-sm leading-relaxed text-muted">
-            Platbu poštovného kartou právě zapojujeme. Do té doby vám Barevia pošle platební údaje e-mailem. Za boty můžete prodejci
-            zaplatit už teď QR kódem níže.
-          </p>
-        </Card>
+        <p className="rounded-2xl bg-forest-soft px-4 py-3 text-[15px] font-semibold text-forest">
+          Boty máte rezervované. Zaplaťte prodejci QR kódem níže a o poštovném se zatím domluvte s prodejcem (kontakt najdete výše).
+        </p>
+      )}
+      {isBuyer && o.status === 'na_ceste' && (
+        <p className="rounded-2xl bg-forest-soft px-4 py-3 text-[15px] font-semibold text-forest">
+          Prodejce boty odeslal/a.{o.tracking_info ? ` Číslo zásilky: ${o.tracking_info}.` : ''} Až si je vyzvednete, potvrďte převzetí.
+        </p>
       )}
 
-      {payment && (isBuyer || isSeller) && !['dokonceno', 'zruseno'].includes(o.status) && (
+      {payment && (isBuyer || isSeller) && ['ceka_na_postovne', 'postovne_zaplaceno', 'k_odeslani'].includes(o.status) && (
         <Card className="flex flex-col gap-4 p-5">
           <p className="font-bold">
             {isBuyer
@@ -202,36 +203,25 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       )}
 
       {/* ---------- Prodávající ---------- */}
-      {isSeller && o.status === 'k_odeslani' && (
-        <Card className="flex flex-col gap-4 border-[1.5px] border-sun p-5">
-          <p className="font-bold">Zkontrolujte, že vám přišlo {formatCzk(o.price_czk)}, a pošlete boty.</p>
-          {o.submission_code ? (
-            <>
-              <div className="flex flex-col gap-1">
-                <span className="text-sm text-muted">Podací kód Zásilkovny</span>
-                <span className="self-start rounded-xl bg-sun-soft px-4 py-2 font-mono text-2xl font-bold tracking-widest">{o.submission_code}</span>
-              </div>
-              {o.packeta_barcode && (
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm text-muted">Napište fixou velkým písmem na balík</span>
-                  <span className="self-start rounded-xl bg-sun-soft px-4 py-2 font-mono text-xl font-bold">{o.packeta_barcode}</span>
-                </div>
-              )}
-              <p className="text-sm leading-relaxed text-muted">
-                U libovolného Z-BOXu zvolte Odeslat zásilku, zadejte podací kód a balík vložte. Nic se netiskne. Můžete ho odnést
-                i na výdejní místo Zásilkovny.
-              </p>
-            </>
-          ) : (
-            <p className="text-sm text-muted">Podací kód vám Barevia doplní sem a pošle e-mailem.</p>
+      {isSeller && ['ceka_na_postovne', 'postovne_zaplaceno', 'k_odeslani'].includes(o.status) && (
+        <Card className="flex flex-col gap-3 border-[1.5px] border-sun p-5">
+          <p className="font-bold">Až vám přijde {formatCzk(o.price_czk)}, pošlete boty a označte je jako odeslané.</p>
+          <p className="text-sm leading-relaxed text-muted">
+            Pošlete je na výdejní místo <strong className="text-ink">{o.pickup_point_name}</strong> pro {o.buyer_name}, třeba přes
+            aplikaci Zásilkovny nebo Balíkovny. O poštovném se zatím domluvte s kupujícím.
+          </p>
+          {o.submission_code && (
+            <p className="text-sm">
+              Podací kód: <strong className="font-mono text-lg tracking-widest">{o.submission_code}</strong>
+              {o.packeta_barcode && <> · na balík napište: <strong>{o.packeta_barcode}</strong></>}
+            </p>
           )}
+          <ShippedForm orderId={o.id} />
         </Card>
       )}
-      {isSeller && ['ceka_na_postovne', 'postovne_zaplaceno'].includes(o.status) && (
+      {isSeller && o.status === 'na_ceste' && (
         <p className="rounded-2xl bg-sky-soft px-4 py-3 text-sm font-semibold text-sky-ink">
-          {o.status === 'ceka_na_postovne'
-            ? 'Kupující si boty rezervoval/a a platí poštovné. Zatím nic neposílejte.'
-            : 'Poštovné je zaplacené, kupující vám posílá peníze za boty. Podací kód se tu brzy objeví.'}
+          Odesláno{o.tracking_info ? ` (číslo zásilky ${o.tracking_info})` : ''}. Čeká se, až kupující potvrdí převzetí.
         </p>
       )}
 
@@ -244,10 +234,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           <Steps
             status={o.status}
             steps={[
-              ['ceka_na_postovne', 'Rezervováno', 'Kupující si vybral/a Z-BOX nebo výdejní místo.'],
-              ['postovne_zaplaceno', 'Poštovné zaplaceno', 'Kupující posílá peníze za boty QR platbou.'],
-              ['k_odeslani', 'K odeslání', 'Prodejce vloží balík do Z-BOXu s podacím kódem.'],
-              ['na_ceste', 'Na cestě', 'Doručení obvykle do 2 pracovních dnů.'],
+              ['ceka_na_postovne', 'Rezervováno', 'Kupující platí prodejci QR kódem.'],
+              ['na_ceste', 'Odesláno', 'Prodejce poslal boty na vybrané výdejní místo.'],
               ['dokonceno', 'Hotovo', 'Kupující potvrdí převzetí a ohodnotí prodejce.'],
             ]}
           />
