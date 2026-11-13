@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+/* Barvy a písma BAREVIA – Moje malé nožky */
+@theme {
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+
+  --color-ground: #FBF8F3;     /* podklad */
+  --color-line: #EDE7DD;       /* jemné linky */
+  --color-field: #D9D3C8;      /* okraj polí */
+  --color-ink: #1D2433;        /* text */
+  --color-muted: #5B6472;      /* doplňkový text */
+
+  --color-forest: #1F6F5C;     /* hlavní barva */
+  --color-forest-dark: #16503F;
+  --color-forest-soft: #E3F0EA;
+  --color-forest-pale: #D6EAE2;
+
+  --color-olive: #4F5B2E;      /* barva z loga */
+  --color-olive-soft: #EEF0E2;
+
+  --color-sun: #F2B33D;        /* akcent */
+  --color-sun-soft: #FDF1D8;
+  --color-sun-ink: #8A5A00;
+  --color-sun-deep: #5B3D00;
+
+  --color-coral: #E46A4E;
+  --color-coral-soft: #FBE3DC;
+  --color-coral-ink: #A23A22;
+
+  --color-sky: #6FA8DC;
+  --color-sky-soft: #DCEBFA;
+  --color-sky-ink: #1E4E7A;
+
+  --color-lilac-soft: #ECE3F7;
+  --color-lilac-ink: #5B3A86;
+}
+
+html {
+  background: var(--color-ground);
+  color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* Číselná pole bez šipek */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}

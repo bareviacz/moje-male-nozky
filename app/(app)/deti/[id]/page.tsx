@@ -1,0 +1,180 @@
+import type { Metadata } from 'next'
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { ChildAvatar } from '@/components/ChildAvatar'
+import { GrowthChart, type GrowthPoint } from '@/components/GrowthChart'
+import { PlusIcon, ShoeIcon } from '@/components/icons'
+import { ShoeCard } from '@/components/ShoeCard'
+import { BackLink, btn, Card, EmptyState, Page } from '@/components/ui'
+import { getChildren, getShoeCategories } from '@/lib/data'
+import { recommendedInnerLength } from '@/lib/fit'
+import { formatAge, formatDate } from '@/lib/format'
+import { isUuid } from '@/lib/forms'
+import { requireUser } from '@/lib/supabase/server'
+
+export const metadata: Metadata = { title: 'Detail dítěte' }
+
+export default async function ChildDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  if (!isUuid(id)) notFound()
+
+  const { supabase } = await requireUser()
+  const [children, growthRes, fitRes, categories] = await Promise.all([
+    getChildren(supabase),
+    supabase.from('child_growth').select('*').eq('child_id', id).order('measured_at', { ascending: true }),
+    supabase.from('shoe_fit').select('*').eq('child_id', id),
+    getShoeCategories(supabase),
+  ])
+
+  const child = children.find((c) => c.id === id)
+  if (!child) notFound()
+
+  const rows = (growthRes.data ?? []).filter((r) => r.foot_length_mm != null && r.measured_at)
+  const last = rows.at(-1)
+  const points: GrowthPoint[] = rows.map((r) => ({
+    months: r.age_months ?? 0,
+    length: r.foot_length_mm!,
+    date: r.measured_at!,
+  }))
+  const recommended = last?.foot_length_mm != null ? recommendedInnerLength(last.foot_length_mm) : null
+  const categoryByCode = new Map(categories.map((c) => [c.code, c]))
+
+  return (
+    <Page>
+      <div className="flex items-center gap-3">
+        <BackLink href="/deti" />
+        <ChildAvatar name={child.name} index={child.index} />
+        <div className="flex flex-1 flex-col">
+          <h1 className="font-display text-[22px] font-bold">{child.name}</h1>
+          <span className="text-[13px] text-muted">{formatAge(child.birth_date)}</span>
+        </div>
+      </div>
+
+      {!last ? (
+        <EmptyState
+          title="Zatím žádné měření"
+          text="Změřte nožky od paty k nejdelšímu prstu, ideálně ve stoje a odpoledne."
+          action={
+            <Link href={`/mereni/nove?dite=${child.id}`} className={btn.small}>
+              Změřit nožky
+            </Link>
+          }
+        />
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-2.5">
+            <div className="flex flex-col gap-0.5 rounded-2xl border border-line bg-white p-3">
+              <span className="text-xs font-semibold text-muted">Délka</span>
+              <span className="font-display text-[22px] font-bold">
+                {last.foot_length_mm} <span className="text-[13px] font-semibold">mm</span>
+              </span>
+            </div>
+            <div className="flex flex-col gap-0.5 rounded-2xl border border-line bg-white p-3">
+              <span className="text-xs font-semibold text-muted">Šířka</span>
+              <span className="font-display text-[22px] font-bold">
+                {last.foot_width_mm ?? '–'} {last.foot_width_mm != null && <span className="text-[13px] font-semibold">mm</span>}
+              </span>
+            </div>
+            <div className="flex flex-col gap-0.5 rounded-2xl bg-forest-soft p-3">
+              <span className="text-xs font-bold text-forest">Od minula</span>
+              <span className="font-display text-[22px] font-bold text-forest">
+                {last.growth_mm != null ? `${last.growth_mm > 0 ? '+' : ''}${last.growth_mm}` : '–'}{' '}
+                {last.growth_mm != null && <span className="text-[13px] font-semibold">mm</span>}
+              </span>
+            </div>
+          </div>
+
+          <Card className="flex flex-col gap-2.5">
+            <div className="flex items-baseline justify-between">
+              <h2 className="text-base font-bold">Růst chodidla</h2>
+              <span className="text-xs text-muted">delší nožka, mm</span>
+            </div>
+            <GrowthChart points={points} />
+          </Card>
+
+          {recommended && (
+            <Card className="flex items-center gap-3.5">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-[14px] bg-sun-soft text-sun-ink">
+                <ShoeIcon className="size-[22px]" />
+              </span>
+              <div className="flex flex-1 flex-col gap-0.5">
+                <span className="text-[13px] font-semibold text-muted">Doporučená vnitřní délka nové boty</span>
+                <span className="font-display text-xl font-bold">
+                  {recommended.min}–{recommended.max} mm
+                </span>
+              </div>
+            </Card>
+          )}
+        </>
+      )}
+
+      <section className="flex flex-col gap-3" aria-labelledby="mereni-nadpis">
+        <div className="flex items-baseline justify-between">
+          <h2 id="mereni-nadpis" className="font-display text-lg font-bold">
+            Měření
+          </h2>
+          <Link href={`/mereni/nove?dite=${child.id}`} className="flex items-center gap-1 text-sm font-bold text-forest">
+            <PlusIcon className="size-4" strokeWidth={2.2} /> Nové měření
+          </Link>
+        </div>
+        {rows.length > 0 && (
+          <ul className="divide-y divide-line overflow-hidden rounded-[20px] border border-line bg-white">
+            {[...rows].reverse().map((r) => (
+              <li key={r.measurement_id} className="flex items-center justify-between gap-3 px-4 py-3">
+                <div className="flex flex-col">
+                  <span className="text-[15px] font-semibold">{formatDate(r.measured_at!)}</span>
+                  <span className="text-xs text-muted">
+                    L {r.left_length_mm ?? '–'} · P {r.right_length_mm ?? '–'} mm
+                  </span>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="font-display text-lg font-bold">{r.foot_length_mm} mm</span>
+                  {r.growth_mm != null && r.growth_mm !== 0 && (
+                    <span className="text-xs font-bold text-forest">
+                      {r.growth_mm > 0 ? '+' : ''}
+                      {r.growth_mm} mm
+                    </span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="flex flex-col gap-3" aria-labelledby="boty-nadpis">
+        <div className="flex items-baseline justify-between">
+          <h2 id="boty-nadpis" className="font-display text-lg font-bold">
+            Nošené boty
+          </h2>
+          <Link href={`/boty/nova?dite=${child.id}`} className="flex items-center gap-1 text-sm font-bold text-forest">
+            <PlusIcon className="size-4" strokeWidth={2.2} /> Přidat botu
+          </Link>
+        </div>
+        {(fitRes.data ?? []).length === 0 ? (
+          <p className="text-sm text-muted">Zatím žádné boty.</p>
+        ) : (
+          (fitRes.data ?? []).map((s) => {
+            const cat = s.category ? categoryByCode.get(s.category) : undefined
+            return (
+              <ShoeCard
+                key={s.shoe_id}
+                shoe={{
+                  id: s.shoe_id!,
+                  brand: s.brand,
+                  model: s.model,
+                  categoryName: cat?.name ?? null,
+                  eshopUrl: cat?.eshop_url ?? null,
+                  euSize: s.eu_size,
+                  innerLength: s.inner_length_mm,
+                  reserve: s.length_reserve_mm,
+                  fitStatus: s.fit_status,
+                }}
+              />
+            )
+          })
+        )}
+      </section>
+    </Page>
+  )
+}
