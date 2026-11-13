@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { cancelOrder, confirmReceived } from '@/app/bazar/actions'
+import { confirmReceived } from '@/app/bazar/actions'
 import { coverPhoto } from '@/components/bazar/ListingCard'
 import { PaymentQr } from '@/components/bazar/PaymentQr'
-import { MessageForm, ReviewForm } from '@/components/bazar/SmallForms'
+import { CancelOrderForm, MessageForm, ReviewForm } from '@/components/bazar/SmallForms'
 import { SubmitButton } from '@/components/SubmitButton'
 import { Card, cx, PageTitle } from '@/components/ui'
 import {
@@ -67,7 +67,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const { data: o } = await supabase
     .from('bazar_orders')
     .select(
-      'id, status, buyer_id, seller_id, buyer_name, price_czk, shipping_czk, pickup_point_name, submission_code, packeta_barcode, created_at, listing_id, bazar_listings(id, brand, model, size_eu, inner_length_mm, bazar_listing_photos(storage_path, kind, position))',
+      'id, status, buyer_id, seller_id, buyer_name, cancelled_by, cancel_reason, price_czk, shipping_czk, pickup_point_name, submission_code, packeta_barcode, created_at, listing_id, bazar_listings(id, brand, model, size_eu, inner_length_mm, bazar_listing_photos(storage_path, kind, position))',
     )
     .eq('id', id)
     .maybeSingle()
@@ -78,7 +78,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const otherId = isBuyer ? o.seller_id : o.buyer_id
   const l = o.bazar_listings
 
-  const [{ data: other }, { data: pay }, { data: review }, { data: messages }] = await Promise.all([
+  const [{ data: other }, { data: pay }, { data: review }, { data: messages }, { data: contacts }] = await Promise.all([
     supabase.from('bazar_sellers').select('nickname').eq('user_id', otherId).maybeSingle(),
     isBuyer && !['ceka_na_postovne', 'zruseno'].includes(o.status)
       ? supabase.rpc('bazar_get_payment_details', { p_order_id: o.id })
@@ -90,7 +90,11 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       .eq('listing_id', o.listing_id)
       .or(`and(sender_id.eq.${o.buyer_id},recipient_id.eq.${o.seller_id}),and(sender_id.eq.${o.seller_id},recipient_id.eq.${o.buyer_id})`)
       .order('created_at', { ascending: true }),
+    o.status !== 'zruseno' && (isBuyer || isSeller)
+      ? supabase.rpc('bazar_get_order_contacts', { p_order_id: o.id })
+      : Promise.resolve({ data: null }),
   ])
+  const contact = (contacts ?? []).find((c) => c.role === (isBuyer ? 'prodejce' : 'kupujici'))
 
   // Zprávy pro mě označit jako přečtené
   if (messages?.some((m) => m.recipient_id === user.id && !m.read_at)) {
@@ -124,7 +128,30 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         </div>
       </Card>
 
-      {o.status === 'zruseno' && <p className="rounded-2xl bg-coral-soft px-4 py-3 font-semibold text-coral-ink">Objednávka byla zrušena.</p>}
+      {contact && (
+        <Card className="flex flex-col gap-1.5 p-5">
+          <h2 className="font-display text-lg font-bold">{isBuyer ? 'Kontakt na prodejce' : 'Kontakt na kupujícího'}</h2>
+          <p className="text-[15px]">
+            <strong>{isBuyer ? contact.nickname : o.buyer_name}</strong>
+            {!isBuyer && <span className="text-muted"> ({contact.nickname})</span>}
+          </p>
+          <p className="flex flex-col gap-0.5 text-[15px]">
+            <a href={`mailto:${contact.email}`} className="font-semibold text-forest underline">{contact.email}</a>
+            {contact.phone && <a href={`tel:${contact.phone.replace(/\s+/g, '')}`} className="font-semibold text-forest underline">{contact.phone}</a>}
+          </p>
+          <p className="text-[13px] text-muted">Domluvit se můžete i přes zprávy níže.</p>
+        </Card>
+      )}
+
+      {o.status === 'zruseno' && (
+        <div className="rounded-2xl bg-coral-soft px-4 py-3 text-coral-ink">
+          <p className="font-semibold">
+            Rezervace byla zrušena
+            {o.cancelled_by ? (o.cancelled_by === user.id ? ' (zrušili jste ji vy)' : isBuyer ? ' prodejcem' : ' kupujícím') : ''}.
+          </p>
+          {o.cancel_reason && <p className="text-sm">Důvod: {o.cancel_reason}</p>}
+        </div>
+      )}
 
       {/* ---------- Kupující ---------- */}
       {isBuyer && o.status === 'ceka_na_postovne' && (
@@ -134,10 +161,6 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
             Platbu poštovného kartou právě zapojujeme. Do té doby vám Barevia pošle platební údaje e-mailem. Jakmile poštovné dorazí,
             uvidíte tady QR kód pro platbu prodejci.
           </p>
-          <form action={cancelOrder}>
-            <input type="hidden" name="order_id" value={o.id} />
-            <SubmitButton variant="ghost" pendingText="Ruším…" className="text-muted">Zrušit rezervaci</SubmitButton>
-          </form>
         </Card>
       )}
 
@@ -204,6 +227,10 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         </p>
       )}
 
+      {(isBuyer || isSeller) && ['ceka_na_postovne', 'postovne_zaplaceno', 'k_odeslani'].includes(o.status) && (
+        <CancelOrderForm orderId={o.id} paid={o.status !== 'ceka_na_postovne'} />
+      )}
+
       {o.status !== 'zruseno' && (
         <Card className="p-5">
           <Steps
@@ -239,7 +266,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           ) : (
             <p className="text-sm text-muted">Zatím žádné zprávy.</p>
           )}
-          <MessageForm listingId={o.listing_id} recipientId={otherId} />
+          <MessageForm listingId={o.listing_id} recipientId={otherId} label={isBuyer ? 'Napsat prodejci' : 'Napsat kupujícímu'} />
         </Card>
       )}
     </div>

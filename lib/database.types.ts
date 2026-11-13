@@ -115,6 +115,8 @@ export type Database = {
           buyer_id: string
           buyer_name: string
           buyer_phone: string | null
+          cancel_reason: string | null
+          cancelled_by: string | null
           comgate_trans_id: string | null
           created_at: string
           id: string
@@ -135,6 +137,8 @@ export type Database = {
           buyer_id: string
           buyer_name: string
           buyer_phone?: string | null
+          cancel_reason?: string | null
+          cancelled_by?: string | null
           comgate_trans_id?: string | null
           created_at?: string
           id?: string
@@ -155,6 +159,8 @@ export type Database = {
           buyer_id?: string
           buyer_name?: string
           buyer_phone?: string | null
+          cancel_reason?: string | null
+          cancelled_by?: string | null
           comgate_trans_id?: string | null
           created_at?: string
           id?: string
@@ -647,7 +653,7 @@ export type Database = {
       }
     }
     Functions: {
-      bazar_cancel_order: { Args: { p_order_id: string }; Returns: undefined }
+      bazar_cancel_order: { Args: { p_order_id: string; p_reason?: string }; Returns: undefined }
       bazar_confirm_received: { Args: { p_order_id: string }; Returns: undefined }
       bazar_create_order: {
         Args: {
@@ -659,6 +665,10 @@ export type Database = {
           p_pickup_point_name: string
         }
         Returns: string
+      }
+      bazar_get_order_contacts: {
+        Args: { p_order_id: string }
+        Returns: { email: string; nickname: string; phone: string | null; role: string }[]
       }
       bazar_get_payment_details: {
         Args: { p_order_id: string }

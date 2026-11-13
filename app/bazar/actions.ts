@@ -201,13 +201,17 @@ export async function createOrder(_: FormState, formData: FormData): Promise<For
   redirect(`/bazar/objednavka/${data}`)
 }
 
-export async function cancelOrder(formData: FormData) {
+export async function cancelOrder(_: FormState, formData: FormData): Promise<FormState> {
   const id = str(formData, 'order_id')
-  if (!isUuid(id)) return
+  const reason = str(formData, 'reason').slice(0, 500)
+  if (!isUuid(id)) return fail(formData, dbErrorCs())
   const { supabase } = await requireBazarUser(`/bazar/objednavka/${id}`)
-  await supabase.rpc('bazar_cancel_order', { p_order_id: id })
+  const { error } = await supabase.rpc('bazar_cancel_order', { p_order_id: id, p_reason: reason || undefined })
+  if (error) {
+    return fail(formData, error.message.includes('Odeslanou') ? 'Odeslanou objednávku už zrušit nejde. Napište prosím Barevii.' : dbErrorCs())
+  }
   revalidatePath('/bazar', 'layout')
-  redirect('/bazar/moje')
+  redirect(`/bazar/objednavka/${id}`)
 }
 
 export async function confirmReceived(formData: FormData) {

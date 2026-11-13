@@ -28,6 +28,14 @@ export default async function AdminPage() {
       .order('created_at', { ascending: true }),
     supabase.from('bazar_reports').select('id, reason, created_at, listing_id, bazar_listings(id, brand, model)').eq('resolved', false).order('created_at'),
   ])
+  const sellerContact = new Map<string, { nickname: string; email: string; phone: string | null }>()
+  await Promise.all(
+    (orders ?? []).map(async (o) => {
+      const { data } = await supabase.rpc('bazar_get_order_contacts', { p_order_id: o.id })
+      const c = (data ?? []).find((x) => x.role === 'prodejce')
+      if (c) sellerContact.set(o.id, c)
+    }),
+  )
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
@@ -49,6 +57,10 @@ export default async function AdminPage() {
               <br />
               Kam: {o.pickup_point_name}
               {o.pickup_point_id && ` (ID ${o.pickup_point_id})`}
+              <br />
+              Prodejce: {sellerContact.get(o.id)?.nickname ?? '–'}
+              {sellerContact.get(o.id) && ` · ${sellerContact.get(o.id)!.email}`}
+              {sellerContact.get(o.id)?.phone && ` · ${sellerContact.get(o.id)!.phone}`}
               <br />
               Boty {formatCzk(o.price_czk)} (platí prodejci) · poštovné {formatCzk(o.shipping_czk)} (platí Barevii)
             </p>

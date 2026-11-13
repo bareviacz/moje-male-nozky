@@ -1,25 +1,25 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { reportListing, sendMessage, sendReview } from '@/app/bazar/actions'
+import { cancelOrder, reportListing, sendMessage, sendReview } from '@/app/bazar/actions'
 import { SubmitButton } from '../SubmitButton'
 import { cx, FormMessage, inputClass } from '../ui'
 
-export function MessageForm({ listingId, recipientId }: { listingId: string; recipientId: string }) {
+export function MessageForm({ listingId, recipientId, label = 'Zeptat se prodejce' }: { listingId: string; recipientId: string; label?: string }) {
   const [state, action] = useActionState(sendMessage, undefined)
   return (
     <form action={action} className="flex flex-col gap-2.5">
       <input type="hidden" name="listing_id" value={listingId} />
       <input type="hidden" name="recipient_id" value={recipientId} />
-      <label htmlFor="body" className="text-sm font-bold">Zeptat se prodejce</label>
+      <label htmlFor={`body-${recipientId}-${listingId}`} className="text-sm font-bold">{label}</label>
       <textarea
-        id="body"
+        id={`body-${recipientId}-${listingId}`}
         name="body"
         rows={3}
         maxLength={2000}
         defaultValue={state?.values?.body}
         key={state?.success ? 'sent' : 'draft'}
-        placeholder="Dobrý den, jakou mají boty šířku v nártu?"
+        placeholder={label === 'Zeptat se prodejce' ? 'Dobrý den, jakou mají boty šířku v nártu?' : 'Napište zprávu…'}
         className={cx(inputClass, 'h-auto py-3')}
       />
       <FormMessage error={state?.error} success={state?.success} />
@@ -77,6 +77,35 @@ export function ReviewForm({ orderId }: { orderId: string }) {
       <textarea id="comment" name="comment" rows={2} maxLength={500} className={cx(inputClass, 'h-auto py-3')} />
       <FormMessage error={state?.error} />
       <SubmitButton variant="small" pendingText="Odesílám…">Poslat hodnocení</SubmitButton>
+    </form>
+  )
+}
+
+export function CancelOrderForm({ orderId, paid }: { orderId: string; paid: boolean }) {
+  const [open, setOpen] = useState(false)
+  const [state, action] = useActionState(cancelOrder, undefined)
+  if (!open)
+    return (
+      <button type="button" onClick={() => setOpen(true)} className="self-start text-sm font-bold text-coral-ink underline">
+        Zrušit rezervaci
+      </button>
+    )
+  return (
+    <form action={action} className="flex flex-col gap-2.5 rounded-2xl bg-coral-soft p-4">
+      <input type="hidden" name="order_id" value={orderId} />
+      <p className="text-sm font-bold text-coral-ink">Opravdu zrušit rezervaci? Boty se vrátí do nabídky a druhá strana dostane upozornění.</p>
+      {paid && (
+        <p className="text-sm text-coral-ink">Pokud už odešla platba za boty, vraťte si ji prosím navzájem. Poštovné vrátí Barevia.</p>
+      )}
+      <label htmlFor="reason" className="text-sm font-bold">Důvod <span className="font-normal">(nepovinný)</span></label>
+      <textarea id="reason" name="reason" rows={2} maxLength={500} className={cx(inputClass, 'h-auto py-3')} />
+      <FormMessage error={state?.error} />
+      <div className="flex flex-wrap gap-2">
+        <SubmitButton variant="small" pendingText="Ruším…" className="bg-coral hover:bg-coral-ink">Ano, zrušit</SubmitButton>
+        <button type="button" onClick={() => setOpen(false)} className="inline-flex h-11 items-center rounded-xl px-3 text-sm font-bold text-ink">
+          Nerušit
+        </button>
+      </div>
     </form>
   )
 }

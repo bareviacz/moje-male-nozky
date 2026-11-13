@@ -105,7 +105,7 @@ export function BuyForm({
         </div>
       </dl>
       <p className="text-[13px] leading-relaxed text-muted">
-        Objednáním si boty rezervujete. Po zaplacení poštovného uvidíte QR kód pro platbu prodejci a prodejce dostane kód
+        Objednáním si boty rezervujete a vy i prodejce uvidíte navzájem e-mail a telefon. Po zaplacení poštovného uvidíte QR kód pro platbu prodejci a prodejce dostane kód
         k odeslání. Kupujete od soukromé osoby, proto se na nákup nevztahuje 14denní lhůta pro vrácení.
       </p>
 

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { coverPhoto } from '@/components/bazar/ListingCard'
+import { MessageForm } from '@/components/bazar/SmallForms'
 import { btn, Card, cx, EmptyState, PageTitle } from '@/components/ui'
 import {
   formatCzk,
@@ -56,6 +57,35 @@ export default async function MinePage() {
     supabase.from('bazar_messages').select('id', { count: 'exact', head: true }).eq('recipient_id', user.id).is('read_at', null),
   ])
 
+  // Zprávy: konverzace podle inzerátu a druhé strany
+  const { data: msgs } = await supabase
+    .from('bazar_messages')
+    .select('id, body, sender_id, recipient_id, created_at, read_at, listing_id, bazar_listings(id, brand, model)')
+    .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
+    .order('created_at', { ascending: false })
+    .limit(200)
+  type Thread = { key: string; listingId: string; title: string; otherId: string; items: NonNullable<typeof msgs> ; unread: boolean }
+  const threads = new Map<string, Thread>()
+  for (const m of msgs ?? []) {
+    const otherId = m.sender_id === user.id ? m.recipient_id : m.sender_id
+    const key = `${m.listing_id}:${otherId}`
+    let t = threads.get(key)
+    if (!t) {
+      t = { key, listingId: m.listing_id, title: m.bazar_listings ? listingTitle(m.bazar_listings) : 'Boty', otherId, items: [], unread: false }
+      threads.set(key, t)
+    }
+    if (t.items.length < 6) t.items.push(m)
+    if (m.recipient_id === user.id && !m.read_at) t.unread = true
+  }
+  const otherIds = [...new Set([...threads.values()].map((t) => t.otherId))]
+  const { data: others } = otherIds.length
+    ? await supabase.from('bazar_sellers').select('user_id, nickname').in('user_id', otherIds)
+    : { data: [] as { user_id: string; nickname: string }[] }
+  const nick = new Map((others ?? []).map((o) => [o.user_id, o.nickname]))
+  if (unread) {
+    await supabase.from('bazar_messages').update({ read_at: new Date().toISOString() }).eq('recipient_id', user.id).is('read_at', null)
+  }
+
   const orderRow = (
     o: { id: string; status: BazarOrderStatus; pickup_point_name: string; buyer_name?: string; bazar_listings: { brand: string; model: string | null; size_eu: number; price_czk: number; bazar_listing_photos: { storage_path: string; kind: 'celek' | 'podrazka' | 'stelka' | 'detail'; position: number }[] } | null },
     todo: boolean,
@@ -87,9 +117,9 @@ export default async function MinePage() {
       </div>
 
       {!!unread && (
-        <p className="rounded-2xl bg-sky-soft px-4 py-3 text-sm font-semibold text-sky-ink">
-          Máte {unread} {unread === 1 ? 'novou zprávu' : unread < 5 ? 'nové zprávy' : 'nových zpráv'}. Najdete je u příslušné objednávky nebo vám přišly e-mailem.
-        </p>
+        <a href="#zpravy" className="rounded-2xl bg-sky-soft px-4 py-3 text-sm font-semibold text-sky-ink">
+          Máte {unread} {unread === 1 ? 'novou zprávu' : unread < 5 ? 'nové zprávy' : 'nových zpráv'} ↓
+        </a>
       )}
 
       <section className="flex flex-col gap-3" aria-labelledby="prodavam">
@@ -122,6 +152,37 @@ export default async function MinePage() {
             </p>
           </Card>
         )}
+      </section>
+
+      <section className="flex scroll-mt-24 flex-col gap-3" id="zpravy" aria-labelledby="zpravy-h">
+        <h2 id="zpravy-h" className="font-display text-xl font-bold">Zprávy</h2>
+        {threads.size === 0 && (
+          <Card>
+            <p className="text-sm text-muted">Zatím žádné zprávy. Na dotazy k vašim inzerátům odpovíte tady.</p>
+          </Card>
+        )}
+        {[...threads.values()].map((t) => (
+          <Card key={t.key} className={cx('flex flex-col gap-3 p-4', t.unread && 'border-[1.5px] border-sky')}>
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <Link href={`/bazar/${t.listingId}`} className="font-bold text-forest">{t.title}</Link>
+              <span className="text-sm text-muted">s {nick.get(t.otherId) ?? 'uživatelem'}</span>
+            </div>
+            <ul className="flex flex-col gap-2">
+              {[...t.items].reverse().map((m) => (
+                <li
+                  key={m.id}
+                  className={cx(
+                    'max-w-[85%] rounded-2xl px-3.5 py-2 text-[15px] whitespace-pre-line',
+                    m.sender_id === user.id ? 'self-end bg-forest-soft' : 'self-start bg-ground ring-1 ring-line',
+                  )}
+                >
+                  {m.body}
+                </li>
+              ))}
+            </ul>
+            <MessageForm listingId={t.listingId} recipientId={t.otherId} label="Odpovědět" />
+          </Card>
+        ))}
       </section>
     </div>
   )
