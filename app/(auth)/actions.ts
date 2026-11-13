@@ -19,6 +19,10 @@ export async function signIn(_: FormState, formData: FormData): Promise<FormStat
 
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error?.code === 'email_not_confirmed') {
+    await supabase.auth.resend({ type: 'signup', email })
+    redirect(codeUrl('registrace', email, safeNext(str(formData, 'next'))))
+  }
   if (error) return fail(formData, authErrorCs(error))
 
   redirect(safeNext(str(formData, 'next')))
@@ -49,12 +53,52 @@ export async function signUp(_: FormState, formData: FormData): Promise<FormStat
   // Když je potvrzování e-mailu vypnuté, je uživatel rovnou přihlášený.
   if (data.session) redirect(next)
 
-  return {
-    success:
-      next.startsWith('/bazar')
-        ? `Hotovo! Na ${email} jsme poslali odkaz pro potvrzení účtu. Po kliknutí na něj se vrátíte rovnou do bazaru.`
-        : `Hotovo! Na ${email} jsme poslali odkaz pro potvrzení účtu.`,
+  redirect(codeUrl('registrace', email, next))
+}
+
+type CodeKind = 'registrace' | 'prihlaseni' | 'heslo'
+const OTP_TYPE = { registrace: 'signup', prihlaseni: 'email', heslo: 'recovery' } as const
+
+function codeUrl(kind: CodeKind, email: string, next?: string) {
+  const q = new URLSearchParams({ typ: kind, email })
+  if (next && next !== '/prehled') q.set('next', next)
+  return `/overeni?${q}`
+}
+
+/** Ověření 6místného kódu z e-mailu (registrace, přihlášení bez hesla, nové heslo). */
+export async function verifyCode(_: FormState, formData: FormData): Promise<FormState> {
+  const email = str(formData, 'email')
+  const token = str(formData, 'token').replace(/\s+/g, '')
+  const kind = str(formData, 'typ') as CodeKind
+  if (!EMAIL_RE.test(email) || !(kind in OTP_TYPE)) return fail(formData, 'Něco se nepovedlo. Zkuste to prosím znovu.')
+  if (!/^\d{6,10}$/.test(token)) return fail(formData, 'Opište kód z e-mailu (6 číslic).')
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: OTP_TYPE[kind] })
+  if (error) {
+    if (error.code === 'otp_expired' || /expired|invalid/i.test(error.message))
+      return fail(formData, 'Kód nesedí nebo už vypršel. Zkontrolujte ho, případně si nechte poslat nový.')
+    return fail(formData, authErrorCs(error))
   }
+
+  redirect(kind === 'heslo' ? '/nove-heslo' : safeNext(str(formData, 'next')))
+}
+
+/** Poslat kód znovu. */
+export async function resendCode(_: FormState, formData: FormData): Promise<FormState> {
+  const email = str(formData, 'email')
+  const kind = str(formData, 'typ') as CodeKind
+  if (!EMAIL_RE.test(email) || !(kind in OTP_TYPE)) return fail(formData, 'Něco se nepovedlo. Zkuste to prosím znovu.')
+
+  const supabase = await createClient()
+  const { error } =
+    kind === 'registrace'
+      ? await supabase.auth.resend({ type: 'signup', email })
+      : kind === 'prihlaseni'
+        ? await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } })
+        : await supabase.auth.resetPasswordForEmail(email)
+  if (error) return fail(formData, authErrorCs(error))
+  return { success: `Nový kód je na cestě na ${email}.` }
 }
 
 export async function sendMagicLink(_: FormState, formData: FormData): Promise<FormState> {
@@ -68,7 +112,7 @@ export async function sendMagicLink(_: FormState, formData: FormData): Promise<F
   })
   if (error) return fail(formData, authErrorCs(error))
 
-  return { success: `Pokud účet existuje, poslali jsme na ${email} přihlašovací odkaz.` }
+  redirect(codeUrl('prihlaseni', email, safeNext(str(formData, 'next'))))
 }
 
 export async function requestPasswordReset(_: FormState, formData: FormData): Promise<FormState> {
@@ -81,7 +125,7 @@ export async function requestPasswordReset(_: FormState, formData: FormData): Pr
   })
   if (error) return fail(formData, authErrorCs(error))
 
-  return { success: `Pokud účet existuje, poslali jsme na ${email} odkaz pro nastavení nového hesla.` }
+  redirect(codeUrl('heslo', email))
 }
 
 export async function updatePassword(_: FormState, formData: FormData): Promise<FormState> {

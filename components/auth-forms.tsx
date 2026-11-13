@@ -4,7 +4,9 @@ import Link from 'next/link'
 import { useActionState, useState } from 'react'
 import {
   requestPasswordReset,
+  resendCode,
   sendMagicLink,
+  verifyCode,
   signIn,
   signUp,
   updatePassword,
@@ -67,10 +69,11 @@ export function LoginForm({ next }: { next?: string } = {}) {
 
       <form action={magicAction} className="flex flex-col gap-3">
         <input type="hidden" name="email" value={email} />
+        {next && <input type="hidden" name="next" value={next} />}
         <FormMessage error={magic?.error} success={magic?.success} />
         <SubmitButton variant="secondary" pendingText="Posílám…">
           <MailIcon className="size-5" />
-          Poslat přihlašovací odkaz e-mailem
+          Přihlásit se kódem z e-mailu
         </SubmitButton>
       </form>
     </div>
@@ -128,7 +131,7 @@ export function ResetForm() {
         <input id="email" name="email" type="email" defaultValue={state?.values?.email} autoComplete="email" inputMode="email" placeholder="vas@email.cz" required className={inputClass} />
       </Field>
       <FormMessage error={state?.error} success={state?.success} />
-      <SubmitButton pendingText="Posílám…">Poslat odkaz</SubmitButton>
+      <SubmitButton pendingText="Posílám…">Poslat kód</SubmitButton>
     </form>
   )
 }
@@ -146,5 +149,43 @@ export function NewPasswordForm() {
         Přeskočit
       </Link>
     </form>
+  )
+}
+
+export function VerifyCodeForm({ email, typ, next }: { email: string; typ: string; next?: string }) {
+  const [state, action] = useActionState(verifyCode, undefined)
+  const [again, againAction] = useActionState(resendCode, undefined)
+  return (
+    <div className="flex flex-col gap-5">
+      <form action={action} className="flex flex-col gap-4">
+        <input type="hidden" name="email" value={email} />
+        <input type="hidden" name="typ" value={typ} />
+        {next && <input type="hidden" name="next" value={next} />}
+        <Field label="Kód z e-mailu" htmlFor="token">
+          <input
+            id="token"
+            name="token"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="[0-9 ]*"
+            maxLength={12}
+            required
+            autoFocus
+            defaultValue={state?.values?.token}
+            placeholder="123456"
+            className={`${inputClass} text-center font-mono text-2xl tracking-[0.4em]`}
+          />
+        </Field>
+        <FormMessage error={state?.error} />
+        <SubmitButton pendingText="Ověřuji…">Potvrdit</SubmitButton>
+      </form>
+      <form action={againAction} className="flex flex-col gap-2">
+        <input type="hidden" name="email" value={email} />
+        <input type="hidden" name="typ" value={typ} />
+        <FormMessage error={again?.error} success={again?.success} />
+        <SubmitButton variant="secondary" pendingText="Posílám…">Poslat nový kód</SubmitButton>
+      </form>
+    </div>
   )
 }

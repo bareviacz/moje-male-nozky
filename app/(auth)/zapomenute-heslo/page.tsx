@@ -11,7 +11,7 @@ export default function ForgotPasswordPage() {
       <div className="flex flex-col gap-2">
         <h1 className="font-display text-[30px] font-bold">Zapomenuté heslo</h1>
         <p className="text-[15px] leading-normal text-muted">
-          Pošleme vám e-mail s odkazem, přes který si nastavíte nové heslo.
+          Pošleme vám e-mail s kódem, přes který si nastavíte nové heslo.
         </p>
       </div>
       <ResetForm />

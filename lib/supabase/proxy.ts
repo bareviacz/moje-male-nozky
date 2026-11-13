@@ -7,7 +7,7 @@ const PROTECTED = ['/prehled', '/deti', '/mereni', '/boty', '/profil']
 /** Stránky jen pro nepřihlášené (přihlášeného pošleme na přehled). */
 const GUEST_ONLY = ['/prihlaseni', '/registrace']
 /** Stránky, které na bazar.barevia.cz zůstávají společné s aplikací (přihlášení, odkazy z e-mailů). */
-const SHARED = ['/prihlaseni', '/registrace', '/zapomenute-heslo', '/nove-heslo', '/auth', '/prehled', '/deti', '/mereni', '/boty', '/profil']
+const SHARED = ['/prihlaseni', '/registrace', '/overeni', '/zapomenute-heslo', '/nove-heslo', '/auth', '/prehled', '/deti', '/mereni', '/boty', '/profil']
 
 /** Na adrese bazar.barevia.cz se úvod a ostatní cesty mapují do /bazar. */
 function bazarRewrite(request: NextRequest) {
