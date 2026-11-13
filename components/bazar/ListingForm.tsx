@@ -21,10 +21,10 @@ export type ListingPrefill = {
 }
 
 const SLOTS: { kind: BazarPhotoKind; required?: boolean; hint: string }[] = [
-  { kind: 'celek', hint: 'z boku' },
+  { kind: 'celek', required: true, hint: 'z boku · povinná' },
   { kind: 'podrazka', required: true, hint: 'povinná' },
-  { kind: 'stelka', hint: 'shora' },
-  { kind: 'detail', hint: 'odřeniny apod.' },
+  { kind: 'stelka', hint: 'shora · nepovinná' },
+  { kind: 'detail', hint: 'odřeniny apod. · nepovinná' },
 ]
 
 type Slot = { file: File; url: string; path?: string }
@@ -60,6 +60,7 @@ export function ListingForm({
       })
       return values
     }
+    if (!photosRef.current.celek) return { error: 'Přidejte fotku celé boty z boku.', values: keep() }
     if (!photosRef.current.podrazka) return { error: 'Přidejte fotku podrážky. Podle ní kupující pozná, jak moc jsou boty sešlapané.', values: keep() }
     const supabase = createClient()
     try {
@@ -138,7 +139,7 @@ export function ListingForm({
             )
           })}
         </div>
-        <span className="text-[13px] text-muted">Fotte prosím jen boty, ne děti. Fotky jsou v bazaru veřejné.</span>
+        <span className="text-[13px] text-muted">Povinné jsou první dvě fotky (celá bota a podrážka), další jsou nepovinné. Foťte prosím jen boty, ne děti. Fotky jsou v bazaru veřejné.</span>
       </fieldset>
 
       <div className="grid grid-cols-2 gap-3">

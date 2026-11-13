@@ -106,6 +106,7 @@ export async function createListing(_: FormState, formData: FormData): Promise<F
     return fail(formData, 'Cena musí být mezi 1 a 20 000 Kč.')
   if (description && description.length > 2000) return fail(formData, 'Popis může mít nejvýš 2000 znaků.')
   if (sourceShoe && !isUuid(sourceShoe)) return fail(formData, dbErrorCs())
+  if (!photos.some((p) => p.kind === 'celek')) return fail(formData, 'Přidejte fotku celé boty z boku.')
   if (!photos.some((p) => p.kind === 'podrazka')) return fail(formData, 'Přidejte fotku podrážky.')
 
   const { supabase, user } = await requireBazarUser('/bazar/prodat')
