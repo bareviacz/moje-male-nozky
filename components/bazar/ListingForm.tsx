@@ -23,7 +23,7 @@ export type ListingPrefill = {
 const SLOTS: { kind: BazarPhotoKind; required?: boolean; hint: string }[] = [
   { kind: 'celek', hint: 'z boku' },
   { kind: 'podrazka', required: true, hint: 'povinná' },
-  { kind: 'stelka', hint: 'shora dovnitř' },
+  { kind: 'stelka', hint: 'shora' },
   { kind: 'detail', hint: 'odřeniny apod.' },
 ]
 

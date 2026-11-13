@@ -38,7 +38,7 @@ export const CONDITION_STRIPE: Record<BazarCondition, string> = {
 export const PHOTO_KIND_LABEL: Record<BazarPhotoKind, string> = {
   celek: 'Celá bota',
   podrazka: 'Podrážka',
-  stelka: 'Stélka',
+  stelka: 'Špička',
   detail: 'Detail',
 }
 
