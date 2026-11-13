@@ -204,10 +204,6 @@ export function PosterA4({ data, color }: { data: PosterData; color: PosterColor
         <div style={{ display: 'flex', alignItems: 'center', gap: '3mm', fontSize: '9pt', fontWeight: 600, color: '#6B6164' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo-barevia.png" alt="Barevia" style={{ height: '6mm', width: 'auto' }} />
-          <span>
-            Moje malé nožky ·{' '}
-            {k === 1 ? 'nožka ve skutečné velikosti, tiskněte na 100 %' : `nožka zmenšená na ${Math.round(k * 100)} %`}
-          </span>
         </div>
       </footer>
     </div>
