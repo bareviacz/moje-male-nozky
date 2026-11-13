@@ -148,6 +148,9 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
                   {recommended.min}–{recommended.max} mm
                 </span>
               </div>
+              <Link href={`/boty/vybrat?dite=${child.id}`} className={btn.small}>
+                Najít boty
+              </Link>
             </Card>
           )}
         </>

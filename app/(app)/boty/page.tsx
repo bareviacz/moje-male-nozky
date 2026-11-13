@@ -130,6 +130,18 @@ export default async function ShoesPage({
         {tab(`/boty?dite=${child.id}&vyrazene=1`, `Vyřazené (${retiredCount})`, showRetired)}
       </div>
 
+      {!showRetired && (
+        <Link
+          href={`/boty/vybrat?dite=${child.id}`}
+          className="flex items-center justify-between gap-3 rounded-2xl bg-forest-soft px-4 py-3 text-sm text-forest-dark hover:bg-forest-pale"
+        >
+          <span>
+            <strong>Najít nové boty:</strong> velikost z e-shopu Barevia podle délky nožky{last?.foot_length_mm != null ? ` (${last.foot_length_mm} mm)` : ''}.
+          </span>
+          <span aria-hidden="true" className="font-bold">→</span>
+        </Link>
+      )}
+
       <Link
         href={showRetired ? '/bazar/prodat' : `/bazar?dite=${child.id}`}
         className="flex items-center justify-between gap-3 rounded-2xl bg-sun-soft px-4 py-3 text-sm text-sun-deep hover:bg-[#FBE7BE]"
