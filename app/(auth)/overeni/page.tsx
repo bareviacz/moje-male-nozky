@@ -7,9 +7,9 @@ import { BackLink } from '@/components/ui'
 export const metadata: Metadata = { title: 'Kód z e-mailu' }
 
 const TEXT: Record<string, { title: string; sub: string }> = {
-  registrace: { title: 'Potvrďte e-mail', sub: 'Poslali jsme vám 6místný kód. Opište ho sem a účet je hotový.' },
-  prihlaseni: { title: 'Přihlášení kódem', sub: 'Poslali jsme vám 6místný kód. Opište ho sem a jste přihlášení.' },
-  heslo: { title: 'Nové heslo', sub: 'Poslali jsme vám 6místný kód. Po jeho opsání si nastavíte nové heslo.' },
+  registrace: { title: 'Potvrďte e-mail', sub: 'Poslali jsme vám e-mail. Opište z něj kód sem, nebo v něm klikněte na odkaz (stačí jedno).' },
+  prihlaseni: { title: 'Přihlášení kódem', sub: 'Poslali jsme vám e-mail. Opište z něj kód sem, nebo v něm klikněte na odkaz (stačí jedno).' },
+  heslo: { title: 'Nové heslo', sub: 'Poslali jsme vám e-mail. Opište z něj kód sem, nebo v něm klikněte na odkaz. Pak si nastavíte nové heslo.' },
 }
 
 export default async function VerifyPage({ searchParams }: { searchParams: Promise<{ typ?: string; email?: string; next?: string }> }) {
