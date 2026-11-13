@@ -12,7 +12,7 @@ npm install
 npm run dev
 ```
 
-Aplikace poběží na http://localhost:3000. Soubor `.env.local` už obsahuje adresu a veřejný
+Aplikace poběží na http://localhost:3000. Produkční verze běží na Vercelu (projekt mojemalenozky2), nasazuje se automaticky z větve `main`.
 (publishable) klíč projektu Supabase „Barevia Moje nožky“.
 
 ## Nastavení v Supabase (Authentication)
