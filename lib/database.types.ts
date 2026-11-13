@@ -676,6 +676,7 @@ export type Database = {
         }
         Returns: string
       }
+      delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined }
       bazar_set_buyer_label: { Args: { p_order_id: string; p_code: string }; Returns: undefined }
       bazar_mark_shipped: { Args: { p_order_id: string; p_tracking?: string }; Returns: undefined }
       bazar_get_order_contacts: {

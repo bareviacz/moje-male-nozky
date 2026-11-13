@@ -264,3 +264,48 @@ export async function updateProfile(_: FormState, formData: FormData): Promise<F
   revalidatePath('/', 'layout')
   return { success: 'Uloženo.' }
 }
+
+/** Smaže účet po ověření hesla (data dětí, fotky, bazar). */
+export async function deleteAccount(_: FormState, formData: FormData): Promise<FormState> {
+  const password = String(formData.get('password') ?? '')
+  if (!password) return fail(formData, 'Zadejte své heslo.')
+  if (formData.get('confirm') !== 'on') return fail(formData, 'Potvrďte prosím, že chcete účet opravdu smazat.')
+
+  const { supabase, user } = await requireUser()
+  if (!user.email) return fail(formData, 'Účet se nepodařilo ověřit.')
+
+  const { error: authError } = await supabase.auth.signInWithPassword({ email: user.email, password })
+  if (authError) return fail(formData, 'Heslo nesedí.')
+
+  const { count } = await supabase
+    .from('bazar_orders')
+    .select('id', { count: 'exact', head: true })
+    .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`)
+    .not('status', 'in', '(dokonceno,zruseno)')
+  if (count)
+    return fail(formData, 'V bazárku máte rozběhnutou objednávku. Dokončete ji nebo zrušte a pak účet smažte.')
+
+  // Fotky z úložiště (smazání řádků je neodstraní samo)
+  const { data: kids } = await supabase.from('children').select('id').eq('created_by', user.id)
+  for (const k of kids ?? []) {
+    const { data: files } = await supabase.storage.from(PHOTO_BUCKET).list(k.id, { limit: 1000 })
+    const paths = (files ?? []).map((f) => `${k.id}/${f.name}`)
+    if (paths.length) await supabase.storage.from(PHOTO_BUCKET).remove(paths)
+  }
+  const { data: dirs } = await supabase.storage.from('bazar-photos').list(user.id, { limit: 1000 })
+  for (const d of dirs ?? []) {
+    const { data: files } = await supabase.storage.from('bazar-photos').list(`${user.id}/${d.name}`, { limit: 1000 })
+    const paths = (files ?? []).map((f) => `${user.id}/${d.name}/${f.name}`)
+    if (paths.length) await supabase.storage.from('bazar-photos').remove(paths)
+  }
+
+  const { error } = await supabase.rpc('delete_my_account')
+  if (error) {
+    if (error.message.includes('open_orders'))
+      return fail(formData, 'V bazárku máte rozběhnutou objednávku. Dokončete ji nebo zrušte a pak účet smažte.')
+    return fail(formData, 'Smazání se nepovedlo. Zkuste to prosím znovu.')
+  }
+
+  await supabase.auth.signOut()
+  redirect('/?smazano=1')
+}

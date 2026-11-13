@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { signOut } from '@/app/(auth)/actions'
 import { AppNamePill, Logo } from '@/components/Logo'
+import { DeleteAccountForm } from '@/components/DeleteAccountForm'
 import { ProfileForm } from '@/components/ProfileForm'
 import { SubmitButton } from '@/components/SubmitButton'
 import { Card, Page, PageTitle } from '@/components/ui'
@@ -36,6 +37,8 @@ export default async function ProfilePage() {
           Odhlásit se
         </SubmitButton>
       </form>
+
+      <DeleteAccountForm />
 
       <div className="flex flex-col items-center gap-2 pt-4 md:hidden">
         <Logo height={28} />

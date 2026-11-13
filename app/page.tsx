@@ -10,9 +10,15 @@ const FEATURES = [
   { text: 'Upozornění, když jsou boty malé', Icon: ShoeIcon, tone: 'bg-coral-soft text-coral-ink' },
 ]
 
-export default function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ smazano?: string }> }) {
+  const { smazano } = await searchParams
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col gap-6 px-6 pt-6 pb-8 md:gap-10 md:px-10 md:pt-10">
+      {smazano && (
+        <p role="status" className="rounded-2xl bg-forest-soft px-4 py-3 text-[15px] font-semibold text-forest">
+          Účet i všechna data jsme smazali. Díky, že jste aplikaci používali.
+        </p>
+      )}
       <header className="flex items-center justify-between gap-3">
         <Logo height={40} />
         <AppNamePill />
