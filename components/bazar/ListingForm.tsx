@@ -145,7 +145,7 @@ export function ListingForm({
         <Field label="Značka" htmlFor="brand">
           <input id="brand" name="brand" type="text" maxLength={40} defaultValue={v?.brand ?? val('brand')} placeholder="např. Be Lenka" className={inputClass} />
         </Field>
-        <Field label="Model" htmlFor="model">
+        <Field label="Model (nepovinné)" htmlFor="model">
           <input id="model" name="model" type="text" maxLength={60} defaultValue={v?.model ?? val('model')} className={inputClass} />
         </Field>
         <Field label="EU velikost" htmlFor="size_eu">
