@@ -28,5 +28,10 @@ export async function GET(request: NextRequest) {
     if (!error) return NextResponse.redirect(new URL(next, origin))
   }
 
-  return NextResponse.redirect(new URL('/prihlaseni?chyba=odkaz', origin))
+  // Odkaz už použitý (často ho předem „otevře“ antivir pošty, např. Seznam) nebo otevřený v jiném prohlížeči.
+  // E-mail bývá i tak potvrzený, takže uživatele pošleme na přihlášení heslem a zachováme, kam chtěl jít.
+  const login = new URL('/prihlaseni', origin)
+  login.searchParams.set('chyba', 'odkaz')
+  if (next.startsWith('/bazar')) login.searchParams.set('next', next)
+  return NextResponse.redirect(login)
 }

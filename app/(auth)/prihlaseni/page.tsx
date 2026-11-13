@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { LoginForm } from '@/components/auth-forms'
-import { BackLink, FormMessage } from '@/components/ui'
+import { BackLink } from '@/components/ui'
 
 export const metadata: Metadata = { title: 'Přihlášení' }
 
@@ -15,7 +15,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <p className="text-[15px] leading-normal text-muted">Přihlaste se a podívejte se, jak nožky rostou.</p>
       </div>
       {chyba === 'odkaz' && (
-        <FormMessage error="Odkaz z e-mailu už neplatí nebo byl použit. Přihlaste se prosím znovu." />
+        <p className="rounded-2xl bg-sky-soft px-4 py-3 text-[15px] leading-relaxed text-sky-ink">
+          Odkaz z e-mailu už byl použitý nebo vypršel. Pokud jste potvrzovali registraci, účet je nejspíš už aktivní –
+          stačí se přihlásit e-mailem a heslem. Když to nepůjde, použijte „Zapomenuté heslo?“.
+        </p>
       )}
       <LoginForm next={next} />
       <p className="text-center text-[15px] text-muted">
