@@ -46,7 +46,7 @@ export async function resizeImage(file: File, quality = 0.85): Promise<Blob> {
 export async function uploadPhoto(
   supabase: SupabaseClient<Database>,
   childId: string,
-  kind: 'avatar' | 'mereni',
+  kind: 'avatar' | 'mereni' | 'bota',
   blob: Blob,
 ) {
   const path = `${childId}/${kind}-${crypto.randomUUID()}.jpg`

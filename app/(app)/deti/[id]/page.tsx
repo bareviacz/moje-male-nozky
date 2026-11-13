@@ -26,6 +26,7 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
     getShoeCategories(supabase),
     supabase.from('foot_measurements').select('id, photo_path').eq('child_id', id).not('photo_path', 'is', null),
   ])
+  const { data: shoePhotoRows } = await supabase.from('shoes').select('id, photo_path, photo_path_2').eq('child_id', id)
 
   const child = children.find((c) => c.id === id)
   if (!child) notFound()
@@ -42,7 +43,16 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
 
   // Fotky nožek u měření (dočasné odkazy)
   const photoRows = photosRes.data ?? []
-  const photoUrlByPath = await signedUrls(supabase, photoRows.map((p) => p.photo_path))
+  const photoUrlByPath = await signedUrls(supabase, [
+    ...photoRows.map((p) => p.photo_path),
+    ...(shoePhotoRows ?? []).flatMap((p) => [p.photo_path, p.photo_path_2]),
+  ])
+  const shoePhotos = new Map(
+    (shoePhotoRows ?? []).map((p) => [
+      p.id,
+      [p.photo_path, p.photo_path_2].flatMap((path) => (path && photoUrlByPath.has(path) ? [photoUrlByPath.get(path)!] : [])),
+    ]),
+  )
   const photoByMeasurement = new Map(
     photoRows
       .filter((p) => p.photo_path && photoUrlByPath.has(p.photo_path))
@@ -209,6 +219,7 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
                   innerLength: s.inner_length_mm,
                   reserve: s.length_reserve_mm,
                   fitStatus: s.fit_status,
+                  photos: shoePhotos.get(s.shoe_id!),
                 }}
               />
             )

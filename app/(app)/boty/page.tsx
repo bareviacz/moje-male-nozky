@@ -4,7 +4,7 @@ import { ChildAvatar } from '@/components/ChildAvatar'
 import { PlusIcon } from '@/components/icons'
 import { ShoeCard } from '@/components/ShoeCard'
 import { btn, cx, EmptyState, Page, PageTitle } from '@/components/ui'
-import { getChildren, getLastMeasurements, getShoeCategories } from '@/lib/data'
+import { getChildren, getLastMeasurements, getShoeCategories, signedUrls } from '@/lib/data'
 import { requireUser } from '@/lib/supabase/server'
 
 export const metadata: Metadata = { title: 'Boty' }
@@ -43,7 +43,7 @@ export default async function ShoesPage({
   const child = children.find((c) => c.id === dite) ?? children[0]
   const categoryByCode = new Map(categories.map((c) => [c.code, c]))
 
-  const [activeRes, retiredRes, retiredCountRes] = await Promise.all([
+  const [activeRes, retiredRes, retiredCountRes, photoRes] = await Promise.all([
     supabase.from('shoe_fit').select('*').eq('child_id', child.id),
     showRetired
       ? supabase
@@ -58,7 +58,18 @@ export default async function ShoesPage({
       .select('id', { count: 'exact', head: true })
       .eq('child_id', child.id)
       .not('retired_at', 'is', null),
+    supabase.from('shoes').select('id, photo_path, photo_path_2').eq('child_id', child.id),
   ])
+
+  // Fotky bot (dočasné odkazy)
+  const photoRows = photoRes.data ?? []
+  const photoUrls = await signedUrls(supabase, photoRows.flatMap((p) => [p.photo_path, p.photo_path_2]))
+  const photosByShoe = new Map(
+    photoRows.map((p) => [
+      p.id,
+      [p.photo_path, p.photo_path_2].flatMap((path) => (path && photoUrls.has(path) ? [photoUrls.get(path)!] : [])),
+    ]),
+  )
 
   const active = activeRes.data ?? []
   const retired = retiredRes.data ?? []
@@ -145,6 +156,7 @@ export default async function ShoesPage({
                   innerLength: s.inner_length_mm,
                   reserve: s.length_reserve_mm,
                   fitStatus: s.fit_status,
+                  photos: photosByShoe.get(s.shoe_id!),
                 }}
               />
             )
@@ -166,6 +178,7 @@ export default async function ShoesPage({
                   reserve: null,
                   fitStatus: null,
                   retiredAt: s.retired_at,
+                  photos: photosByShoe.get(s.id),
                 }}
               />
             )

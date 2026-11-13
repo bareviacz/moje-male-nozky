@@ -272,6 +272,7 @@ export type Database = {
           model: string | null
           note: string | null
           photo_path: string | null
+          photo_path_2: string | null
           purchased_at: string | null
           retired_at: string | null
           shoptet_product_code: string | null
@@ -290,6 +291,7 @@ export type Database = {
           model?: string | null
           note?: string | null
           photo_path?: string | null
+          photo_path_2?: string | null
           purchased_at?: string | null
           retired_at?: string | null
           shoptet_product_code?: string | null
@@ -308,6 +310,7 @@ export type Database = {
           model?: string | null
           note?: string | null
           photo_path?: string | null
+          photo_path_2?: string | null
           purchased_at?: string | null
           retired_at?: string | null
           shoptet_product_code?: string | null

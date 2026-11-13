@@ -4,7 +4,7 @@ import { deleteShoe } from '@/app/(app)/actions'
 import { DeleteButton } from '@/components/DeleteButton'
 import { ShoeForm } from '@/components/ShoeForm'
 import { BackLink, Page, PageTitle } from '@/components/ui'
-import { getChildren, getLastMeasurements, getShoeCategories } from '@/lib/data'
+import { getChildren, getLastMeasurements, getShoeCategories, signedUrls } from '@/lib/data'
 import { todayIso } from '@/lib/format'
 import { isUuid } from '@/lib/forms'
 import { requireUser } from '@/lib/supabase/server'
@@ -19,7 +19,7 @@ export default async function EditShoePage({ params }: { params: Promise<{ id: s
   const [shoeRes, children, lastByChild, categories] = await Promise.all([
     supabase
       .from('shoes')
-      .select('id, child_id, category, brand, model, eu_size, inner_length_mm, inner_width_mm, purchased_at')
+      .select('id, child_id, category, brand, model, eu_size, inner_length_mm, inner_width_mm, purchased_at, photo_path, photo_path_2')
       .eq('id', id)
       .maybeSingle(),
     getChildren(supabase),
@@ -30,6 +30,9 @@ export default async function EditShoePage({ params }: { params: Promise<{ id: s
   if (!shoe) notFound()
 
   const title = [shoe.brand, shoe.model].filter(Boolean).join(' ') || 'boty'
+  const photoPaths = [shoe.photo_path, shoe.photo_path_2].filter((p): p is string => !!p)
+  const urls = await signedUrls(supabase, photoPaths)
+  const photos = photoPaths.filter((p) => urls.has(p)).map((p) => ({ path: p, url: urls.get(p)! }))
 
   return (
     <Page>
@@ -43,7 +46,7 @@ export default async function EditShoePage({ params }: { params: Promise<{ id: s
         lastLength={Object.fromEntries(children.map((c) => [c.id, lastByChild.get(c.id)?.foot_length_mm ?? null]))}
         categories={categories.map(({ code, name }) => ({ code, name }))}
         today={todayIso()}
-        initial={shoe}
+        initial={{ ...shoe, photos }}
       />
       <div className="mt-6 border-t border-line pt-5">
         <DeleteButton

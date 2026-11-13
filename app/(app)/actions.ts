@@ -7,6 +7,9 @@ import { todayIso } from '@/lib/format'
 import { PHOTO_BUCKET } from '@/lib/photos'
 import { requireUser } from '@/lib/supabase/server'
 
+/** Cesta k fotce v úložišti: <uuid dítěte>/<název>.jpg */
+const PHOTO_PATH_RE = /^[0-9a-f-]{36}\/[a-z0-9-]+\.jpg$/
+
 const inRange = (v: number | null, min: number, max: number) => v === null || (!Number.isNaN(v) && v >= min && v <= max)
 
 /* ---------- Děti ---------- */
@@ -174,8 +177,11 @@ export async function saveShoe(_: FormState, formData: FormData): Promise<FormSt
   const innerLength = int(formData, 'inner_length_mm')
   const innerWidth = int(formData, 'inner_width_mm')
   const purchasedAt = str(formData, 'purchased_at') || null
+  const photo1 = str(formData, 'photo_1') || null
+  const photo2 = str(formData, 'photo_2') || null
 
   if (!isUuid(childId)) return fail(formData, 'Vyberte dítě.')
+  if ([photo1, photo2].some((p) => p && !PHOTO_PATH_RE.test(p))) return fail(formData, 'Fotku se nepodařilo uložit.')
   if (category && !/^[a-z_]{2,40}$/.test(category)) return fail(formData, 'Vyberte druh obuvi.')
   if (euSize !== null && (Number.isNaN(euSize) || euSize < 15 || euSize > 45))
     return fail(formData, 'EU velikost musí být mezi 15 a 45.')
@@ -194,12 +200,18 @@ export async function saveShoe(_: FormState, formData: FormData): Promise<FormSt
     inner_length_mm: innerLength,
     inner_width_mm: innerWidth,
     purchased_at: purchasedAt,
+    photo_path: photo1 ?? photo2,
+    photo_path_2: photo1 ? photo2 : null,
   }
 
   if (shoeId) {
     if (!isUuid(shoeId)) return fail(formData, dbErrorCs())
+    const { data: old } = await supabase.from('shoes').select('photo_path, photo_path_2').eq('id', shoeId).maybeSingle()
     const { data, error } = await supabase.from('shoes').update(values).eq('id', shoeId).select('id')
     if (error || !data?.length) return fail(formData, dbErrorCs())
+    const kept = new Set([values.photo_path, values.photo_path_2])
+    const removed = [old?.photo_path, old?.photo_path_2].filter((p): p is string => !!p && !kept.has(p))
+    if (removed.length) await supabase.storage.from(PHOTO_BUCKET).remove(removed)
   } else {
     const { error } = await supabase.from('shoes').insert({ ...values, created_by: user.id })
     if (error) return fail(formData, dbErrorCs())
@@ -213,9 +225,10 @@ export async function deleteShoe(formData: FormData) {
   const shoeId = str(formData, 'shoe_id')
   if (!isUuid(shoeId)) return
   const { supabase } = await requireUser()
-  const { data } = await supabase.from('shoes').delete().eq('id', shoeId).select('child_id, photo_path')
+  const { data } = await supabase.from('shoes').delete().eq('id', shoeId).select('child_id, photo_path, photo_path_2')
   const row = data?.[0]
-  if (row?.photo_path) await supabase.storage.from(PHOTO_BUCKET).remove([row.photo_path])
+  const photos = [row?.photo_path, row?.photo_path_2].filter((p): p is string => !!p)
+  if (photos.length) await supabase.storage.from(PHOTO_BUCKET).remove(photos)
   revalidatePath('/', 'layout')
   redirect(row ? `/boty?dite=${row.child_id}` : '/boty')
 }

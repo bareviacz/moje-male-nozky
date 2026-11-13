@@ -17,6 +17,21 @@ export type ShoeView = {
   reserve: number | null
   fitStatus: string | null
   retiredAt?: string | null
+  photos?: string[]
+}
+
+function Photos({ urls, title }: { urls?: string[]; title: string }) {
+  if (!urls?.length) return null
+  return (
+    <div className="flex gap-2">
+      {urls.map((url, i) => (
+        <a key={url} href={url} target="_blank" rel="noopener" aria-label={`Fotka ${i + 1}: ${title}`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={url} alt="" className="size-16 rounded-xl object-cover ring-1 ring-line" />
+        </a>
+      ))}
+    </div>
+  )
 }
 
 function title(s: ShoeView) {
@@ -37,7 +52,8 @@ export function ShoeCard({ shoe }: { shoe: ShoeView }) {
   if (shoe.retiredAt) {
     return (
       <div className="flex items-center justify-between gap-3 rounded-[20px] border border-line bg-white/70 p-4">
-        <div className="flex flex-col gap-0.5">
+        <Photos urls={shoe.photos?.slice(0, 1)} title={title(shoe)} />
+        <div className="flex flex-1 flex-col gap-0.5">
           <span className="font-bold">{title(shoe)}</span>
           <span className="text-[13px] text-muted">
             {details}
@@ -70,6 +86,8 @@ export function ShoeCard({ shoe }: { shoe: ShoeView }) {
           {FIT_LABEL[status]}
         </span>
       </div>
+
+      <Photos urls={shoe.photos} title={title(shoe)} />
 
       {shoe.reserve != null && (
         <div className="flex flex-col gap-1.5">
