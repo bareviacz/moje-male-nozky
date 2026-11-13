@@ -110,7 +110,7 @@ export default async function ListingPage({
               <h1 className="font-display text-[28px] leading-tight font-bold text-balance">{listingTitle(l)}</h1>
               <p className="font-display text-3xl font-bold tabular-nums">
                 {formatCzk(l.price_czk)}{' '}
-                <span className="font-sans text-sm font-semibold text-muted">+ poštovné {formatCzk(BAZAR_SHIPPING_CZK)}</span>
+                <span className="font-sans text-sm font-semibold text-muted">+ poštovné {formatCzk(BAZAR_SHIPPING_CZK)} nebo vlastní štítek</span>
               </p>
             </div>
 

@@ -113,6 +113,7 @@ export type Database = {
         Row: {
           buyer_email: string
           buyer_id: string
+          buyer_label_code: string | null
           buyer_name: string
           buyer_phone: string | null
           cancel_reason: string | null
@@ -129,6 +130,7 @@ export type Database = {
           seller_id: string
           shipping_czk: number
           status: Database["public"]["Enums"]["bazar_order_status"]
+          shipping_method: string
           submission_code: string | null
           tracking_info: string | null
           updated_at: string
@@ -136,6 +138,7 @@ export type Database = {
         Insert: {
           buyer_email: string
           buyer_id: string
+          buyer_label_code?: string | null
           buyer_name: string
           buyer_phone?: string | null
           cancel_reason?: string | null
@@ -152,6 +155,7 @@ export type Database = {
           seller_id: string
           shipping_czk: number
           status?: Database["public"]["Enums"]["bazar_order_status"]
+          shipping_method?: string
           submission_code?: string | null
           tracking_info?: string | null
           updated_at?: string
@@ -159,6 +163,7 @@ export type Database = {
         Update: {
           buyer_email?: string
           buyer_id?: string
+          buyer_label_code?: string | null
           buyer_name?: string
           buyer_phone?: string | null
           cancel_reason?: string | null
@@ -175,6 +180,7 @@ export type Database = {
           seller_id?: string
           shipping_czk?: number
           status?: Database["public"]["Enums"]["bazar_order_status"]
+          shipping_method?: string
           submission_code?: string | null
           tracking_info?: string | null
           updated_at?: string
@@ -666,9 +672,11 @@ export type Database = {
           p_listing_id: string
           p_pickup_point_id: string
           p_pickup_point_name: string
+          p_shipping_method?: string
         }
         Returns: string
       }
+      bazar_set_buyer_label: { Args: { p_order_id: string; p_code: string }; Returns: undefined }
       bazar_mark_shipped: { Args: { p_order_id: string; p_tracking?: string }; Returns: undefined }
       bazar_get_order_contacts: {
         Args: { p_order_id: string }

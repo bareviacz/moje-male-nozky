@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { cancelOrder, markShipped, reportListing, sendMessage, sendReview } from '@/app/bazar/actions'
+import { cancelOrder, markShipped, reportListing, sendMessage, sendReview, setBuyerLabel } from '@/app/bazar/actions'
 import { SubmitButton } from '../SubmitButton'
 import { cx, FormMessage, inputClass } from '../ui'
 
@@ -122,6 +122,27 @@ export function ShippedForm({ orderId }: { orderId: string }) {
       <input id={`tracking-${orderId}`} name="tracking" type="text" maxLength={120} placeholder="např. Z 123 4567 890" className={inputClass} />
       <FormMessage error={state?.error} />
       <SubmitButton pendingText="Ukládám…">Boty jsem odeslal/a</SubmitButton>
+    </form>
+  )
+}
+
+export function BuyerLabelForm({ orderId, current }: { orderId: string; current: string | null }) {
+  const [state, action] = useActionState(setBuyerLabel, undefined)
+  return (
+    <form action={action} className="flex flex-col gap-2.5">
+      <input type="hidden" name="order_id" value={orderId} />
+      <label htmlFor={`code-${orderId}`} className="text-sm font-bold">Podací kód / číslo zásilky pro prodejce</label>
+      <textarea
+        id={`code-${orderId}`}
+        name="code"
+        rows={2}
+        maxLength={300}
+        defaultValue={state?.values?.code ?? current ?? ''}
+        placeholder="např. Zásilkovna, podací kód 4F7K92"
+        className={cx(inputClass, 'h-auto py-3')}
+      />
+      <FormMessage error={state?.error} success={state?.success} />
+      <SubmitButton variant="small" pendingText="Ukládám…">{current ? 'Změnit kód' : 'Poslat kód prodejci'}</SubmitButton>
     </form>
   )
 }

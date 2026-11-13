@@ -173,9 +173,10 @@ export async function createOrder(_: FormState, formData: FormData): Promise<For
   const name = str(formData, 'buyer_name')
   const email = str(formData, 'buyer_email')
   const phone = str(formData, 'buyer_phone') || undefined
+  const method = str(formData, 'shipping_method') === 'vlastni_stitek' ? 'vlastni_stitek' : 'postovne'
 
   if (!isUuid(listingId)) return fail(formData, dbErrorCs())
-  if (!pointName || pointName.length > 200) return fail(formData, 'Vyberte výdejní místo nebo Z-BOX.')
+  if (!pointName || pointName.length > 200) return fail(formData, 'Vyberte výdejní místo, Z-BOX nebo Balíkovnu.')
   if (name.length < 2 || name.length > 100) return fail(formData, 'Vyplňte jméno a příjmení.')
   if (!EMAIL_RE.test(email)) return fail(formData, 'Zadejte platný e-mail.')
   if (phone && phone.length > 20) return fail(formData, 'Telefon je moc dlouhý.')
@@ -188,6 +189,7 @@ export async function createOrder(_: FormState, formData: FormData): Promise<For
     p_buyer_name: name,
     p_buyer_email: email,
     p_buyer_phone: phone,
+    p_shipping_method: method,
   })
   if (error || !data) {
     const msg = error?.message ?? ''
@@ -223,6 +225,18 @@ export async function markShipped(_: FormState, formData: FormData): Promise<For
   if (error) return fail(formData, 'Objednávku se nepodařilo označit jako odeslanou.')
   revalidatePath('/bazar', 'layout')
   return { success: 'Hotovo, kupující dostal zprávu, že boty jsou na cestě.' }
+}
+
+export async function setBuyerLabel(_: FormState, formData: FormData): Promise<FormState> {
+  const id = str(formData, 'order_id')
+  const code = str(formData, 'code').slice(0, 300)
+  if (!isUuid(id)) return fail(formData, dbErrorCs())
+  if (code.length < 3) return fail(formData, 'Vložte podací kód nebo číslo zásilky.')
+  const { supabase } = await requireBazarUser(`/bazar/objednavka/${id}`)
+  const { error } = await supabase.rpc('bazar_set_buyer_label', { p_order_id: id, p_code: code })
+  if (error) return fail(formData, 'Kód se nepodařilo uložit.')
+  revalidatePath('/bazar', 'layout')
+  return { success: 'Uloženo, prodejce dostal kód.' }
 }
 
 export async function confirmReceived(formData: FormData) {
