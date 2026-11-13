@@ -95,7 +95,7 @@ export function CancelOrderForm({ orderId, paid }: { orderId: string; paid: bool
       <input type="hidden" name="order_id" value={orderId} />
       <p className="text-sm font-bold text-coral-ink">Opravdu zrušit rezervaci? Boty se vrátí do nabídky a druhá strana dostane upozornění.</p>
       {paid && (
-        <p className="text-sm text-coral-ink">Pokud už odešla platba za boty, vraťte si ji prosím navzájem. Poštovné vrátí Barevia.</p>
+        <p className="text-sm text-coral-ink">Pokud už odešla platba za boty, vraťte si ji prosím navzájem.</p>
       )}
       <label htmlFor="reason" className="text-sm font-bold">Důvod <span className="font-normal">(nepovinný)</span></label>
       <textarea id="reason" name="reason" rows={2} maxLength={500} className={cx(inputClass, 'h-auto py-3')} />

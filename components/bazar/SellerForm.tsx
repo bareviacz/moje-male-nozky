@@ -33,7 +33,7 @@ export function SellerForm({
           <Field
             label="Číslo účtu pro platbu za boty"
             htmlFor="bank_account"
-            hint="Kupující ho uvidí až po zaplacení poštovného, v QR kódu pro platbu."
+            hint="Kupující ho uvidí až po rezervaci bot, v QR kódu pro platbu."
           >
             <input
               id="bank_account"

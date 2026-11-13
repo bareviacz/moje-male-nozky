@@ -187,8 +187,8 @@ export function ListingForm({
         </Field>
       </div>
 
-      <Field label="Cena (Kč)" htmlFor="price_czk" hint="Poštovné 79 Kč platí kupující zvlášť.">
-        <input id="price_czk" name="price_czk" type="number" inputMode="numeric" min={1} max={20000} step={10} defaultValue={v?.price_czk} placeholder="590" className={inputClass} />
+      <Field label="Cena (Kč)" htmlFor="price_czk">
+        <input id="price_czk" name="price_czk" type="number" inputMode="numeric" min={1} max={20000} step={1} defaultValue={v?.price_czk} placeholder="590" className={inputClass} />
       </Field>
       <Field label="Popis" htmlFor="description" hint="Jak dlouho se nosily, vady, jestli jsou vyprané…">
         <textarea id="description" name="description" rows={4} maxLength={2000} defaultValue={v?.description} className={cx(inputClass, 'h-auto py-3')} />

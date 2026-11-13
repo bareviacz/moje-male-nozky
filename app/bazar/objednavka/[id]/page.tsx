@@ -226,7 +226,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       )}
 
       {(isBuyer || isSeller) && ['ceka_na_postovne', 'postovne_zaplaceno', 'k_odeslani'].includes(o.status) && (
-        <CancelOrderForm orderId={o.id} paid={o.status !== 'ceka_na_postovne'} />
+        <CancelOrderForm orderId={o.id} paid />
       )}
 
       {o.status !== 'zruseno' && (

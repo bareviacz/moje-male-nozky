@@ -1,0 +1,4 @@
+-- E-mail o zrušení rezervace bez zmínky o vracení poštovného (poštovné zatím Barevia nevybírá).
+-- Obsah funkce private.bazar_order_cancel_notify viz 20261113184000_bazar_zruseni.sql, jen text v_msg:
+--   '<p>Pokud už odešla platba za boty, vraťte si ji prosím navzájem.</p>'
+-- a e-mail správcům bez upozornění na vrácení poštovného.

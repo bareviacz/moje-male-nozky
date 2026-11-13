@@ -39,7 +39,7 @@ export default async function AdminPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <PageTitle sub="Dokud nejsou zapojené Comgate a Zásilkovna, posouváte objednávky tady ručně.">Správa bazaru</PageTitle>
+      <PageTitle sub="Přehled rozpracovaných objednávek a nahlášených inzerátů. Stav můžete v případě potřeby změnit ručně.">Správa bazaru</PageTitle>
 
       <section className="flex flex-col gap-3" aria-labelledby="objednavky">
         <h2 id="objednavky" className="font-display text-xl font-bold">Rozpracované objednávky ({orders?.length ?? 0})</h2>
@@ -62,7 +62,7 @@ export default async function AdminPage() {
               {sellerContact.get(o.id) && ` · ${sellerContact.get(o.id)!.email}`}
               {sellerContact.get(o.id)?.phone && ` · ${sellerContact.get(o.id)!.phone}`}
               <br />
-              Boty {formatCzk(o.price_czk)} (platí prodejci) · poštovné {formatCzk(o.shipping_czk)} (platí Barevii)
+              Boty {formatCzk(o.price_czk)} (platí prodejci)
             </p>
             <form action={adminUpdateOrder} className="grid gap-3 sm:grid-cols-3">
               <input type="hidden" name="order_id" value={o.id} />
