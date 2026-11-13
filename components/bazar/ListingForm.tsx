@@ -180,7 +180,7 @@ export function ListingForm({
         </Field>
         <Field label="Stav" htmlFor="condition">
           <select id="condition" name="condition" defaultValue={v?.condition ?? 'lehce_nosene'} className={inputClass}>
-            {Object.entries(CONDITION_LABEL).map(([k, t]) => (
+            {Object.entries(CONDITION_LABEL).filter(([k]) => k !== 'hodne_nosene' || v?.condition === 'hodne_nosene').map(([k, t]) => (
               <option key={k} value={k}>{t}</option>
             ))}
           </select>
