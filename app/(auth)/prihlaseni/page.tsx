@@ -5,8 +5,8 @@ import { BackLink, FormMessage } from '@/components/ui'
 
 export const metadata: Metadata = { title: 'Přihlášení' }
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ chyba?: string }> }) {
-  const { chyba } = await searchParams
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ chyba?: string; next?: string }> }) {
+  const { chyba, next } = await searchParams
   return (
     <>
       <BackLink href="/" />
@@ -17,7 +17,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       {chyba === 'odkaz' && (
         <FormMessage error="Odkaz z e-mailu už neplatí nebo byl použit. Přihlaste se prosím znovu." />
       )}
-      <LoginForm />
+      <LoginForm next={next} />
       <p className="text-center text-[15px] text-muted">
         Nemáte účet?{' '}
         <Link href="/registrace" className="font-bold text-forest">

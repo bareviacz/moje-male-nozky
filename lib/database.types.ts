@@ -15,6 +15,199 @@ export type Database = {
   }
   public: {
     Tables: {
+      bazar_favorites: {
+        Row: { created_at: string; listing_id: string; user_id: string }
+        Insert: { created_at?: string; listing_id: string; user_id: string }
+        Update: { created_at?: string; listing_id?: string; user_id?: string }
+        Relationships: [
+          { foreignKeyName: "bazar_favorites_listing_id_fkey"; columns: ["listing_id"]; isOneToOne: false; referencedRelation: "bazar_listings"; referencedColumns: ["id"] },
+          { foreignKeyName: "bazar_favorites_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"] },
+        ]
+      }
+      bazar_listing_photos: {
+        Row: { created_at: string; id: string; kind: Database["public"]["Enums"]["bazar_photo_kind"]; listing_id: string; position: number; storage_path: string }
+        Insert: { created_at?: string; id?: string; kind?: Database["public"]["Enums"]["bazar_photo_kind"]; listing_id: string; position?: number; storage_path: string }
+        Update: { created_at?: string; id?: string; kind?: Database["public"]["Enums"]["bazar_photo_kind"]; listing_id?: string; position?: number; storage_path?: string }
+        Relationships: [
+          { foreignKeyName: "bazar_listing_photos_listing_id_fkey"; columns: ["listing_id"]; isOneToOne: false; referencedRelation: "bazar_listings"; referencedColumns: ["id"] },
+        ]
+      }
+      bazar_listings: {
+        Row: {
+          brand: string
+          category: string
+          condition: Database["public"]["Enums"]["bazar_condition"]
+          created_at: string
+          description: string | null
+          gender: Database["public"]["Enums"]["bazar_gender"]
+          id: string
+          inner_length_mm: number
+          inner_width_mm: number | null
+          model: string | null
+          price_czk: number
+          seller_id: string
+          size_eu: number
+          source_shoe_id: string | null
+          status: Database["public"]["Enums"]["bazar_listing_status"]
+          title: string
+          updated_at: string
+          width: Database["public"]["Enums"]["bazar_width"]
+        }
+        Insert: {
+          brand: string
+          category: string
+          condition: Database["public"]["Enums"]["bazar_condition"]
+          created_at?: string
+          description?: string | null
+          gender?: Database["public"]["Enums"]["bazar_gender"]
+          id?: string
+          inner_length_mm: number
+          inner_width_mm?: number | null
+          model?: string | null
+          price_czk: number
+          seller_id: string
+          size_eu: number
+          source_shoe_id?: string | null
+          status?: Database["public"]["Enums"]["bazar_listing_status"]
+          title: string
+          updated_at?: string
+          width?: Database["public"]["Enums"]["bazar_width"]
+        }
+        Update: {
+          brand?: string
+          category?: string
+          condition?: Database["public"]["Enums"]["bazar_condition"]
+          created_at?: string
+          description?: string | null
+          gender?: Database["public"]["Enums"]["bazar_gender"]
+          id?: string
+          inner_length_mm?: number
+          inner_width_mm?: number | null
+          model?: string | null
+          price_czk?: number
+          seller_id?: string
+          size_eu?: number
+          source_shoe_id?: string | null
+          status?: Database["public"]["Enums"]["bazar_listing_status"]
+          title?: string
+          updated_at?: string
+          width?: Database["public"]["Enums"]["bazar_width"]
+        }
+        Relationships: [
+          { foreignKeyName: "bazar_listings_category_fkey"; columns: ["category"]; isOneToOne: false; referencedRelation: "shoe_categories"; referencedColumns: ["code"] },
+          { foreignKeyName: "bazar_listings_seller_id_fkey"; columns: ["seller_id"]; isOneToOne: false; referencedRelation: "bazar_sellers"; referencedColumns: ["user_id"] },
+          { foreignKeyName: "bazar_listings_source_shoe_id_fkey"; columns: ["source_shoe_id"]; isOneToOne: false; referencedRelation: "shoes"; referencedColumns: ["id"] },
+        ]
+      }
+      bazar_messages: {
+        Row: { body: string; created_at: string; id: string; listing_id: string; read_at: string | null; recipient_id: string; sender_id: string }
+        Insert: { body: string; created_at?: string; id?: string; listing_id: string; read_at?: string | null; recipient_id: string; sender_id: string }
+        Update: { body?: string; created_at?: string; id?: string; listing_id?: string; read_at?: string | null; recipient_id?: string; sender_id?: string }
+        Relationships: [
+          { foreignKeyName: "bazar_messages_listing_id_fkey"; columns: ["listing_id"]; isOneToOne: false; referencedRelation: "bazar_listings"; referencedColumns: ["id"] },
+          { foreignKeyName: "bazar_messages_recipient_id_fkey"; columns: ["recipient_id"]; isOneToOne: false; referencedRelation: "bazar_sellers"; referencedColumns: ["user_id"] },
+          { foreignKeyName: "bazar_messages_sender_id_fkey"; columns: ["sender_id"]; isOneToOne: false; referencedRelation: "bazar_sellers"; referencedColumns: ["user_id"] },
+        ]
+      }
+      bazar_orders: {
+        Row: {
+          buyer_email: string
+          buyer_id: string
+          buyer_name: string
+          buyer_phone: string | null
+          comgate_trans_id: string | null
+          created_at: string
+          id: string
+          listing_id: string
+          packeta_barcode: string | null
+          packeta_packet_id: string | null
+          pickup_point_id: string
+          pickup_point_name: string
+          price_czk: number
+          seller_id: string
+          shipping_czk: number
+          status: Database["public"]["Enums"]["bazar_order_status"]
+          submission_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          buyer_email: string
+          buyer_id: string
+          buyer_name: string
+          buyer_phone?: string | null
+          comgate_trans_id?: string | null
+          created_at?: string
+          id?: string
+          listing_id: string
+          packeta_barcode?: string | null
+          packeta_packet_id?: string | null
+          pickup_point_id: string
+          pickup_point_name: string
+          price_czk: number
+          seller_id: string
+          shipping_czk: number
+          status?: Database["public"]["Enums"]["bazar_order_status"]
+          submission_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          buyer_email?: string
+          buyer_id?: string
+          buyer_name?: string
+          buyer_phone?: string | null
+          comgate_trans_id?: string | null
+          created_at?: string
+          id?: string
+          listing_id?: string
+          packeta_barcode?: string | null
+          packeta_packet_id?: string | null
+          pickup_point_id?: string
+          pickup_point_name?: string
+          price_czk?: number
+          seller_id?: string
+          shipping_czk?: number
+          status?: Database["public"]["Enums"]["bazar_order_status"]
+          submission_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          { foreignKeyName: "bazar_orders_buyer_id_fkey"; columns: ["buyer_id"]; isOneToOne: false; referencedRelation: "bazar_sellers"; referencedColumns: ["user_id"] },
+          { foreignKeyName: "bazar_orders_listing_id_fkey"; columns: ["listing_id"]; isOneToOne: false; referencedRelation: "bazar_listings"; referencedColumns: ["id"] },
+          { foreignKeyName: "bazar_orders_seller_id_fkey"; columns: ["seller_id"]; isOneToOne: false; referencedRelation: "bazar_sellers"; referencedColumns: ["user_id"] },
+        ]
+      }
+      bazar_reports: {
+        Row: { created_at: string; id: string; listing_id: string | null; reason: string; reporter_id: string | null; resolved: boolean }
+        Insert: { created_at?: string; id?: string; listing_id?: string | null; reason: string; reporter_id?: string | null; resolved?: boolean }
+        Update: { created_at?: string; id?: string; listing_id?: string | null; reason?: string; reporter_id?: string | null; resolved?: boolean }
+        Relationships: [
+          { foreignKeyName: "bazar_reports_listing_id_fkey"; columns: ["listing_id"]; isOneToOne: false; referencedRelation: "bazar_listings"; referencedColumns: ["id"] },
+        ]
+      }
+      bazar_reviews: {
+        Row: { comment: string | null; created_at: string; id: string; order_id: string; rating: number; reviewee_id: string; reviewer_id: string }
+        Insert: { comment?: string | null; created_at?: string; id?: string; order_id: string; rating: number; reviewee_id: string; reviewer_id: string }
+        Update: { comment?: string | null; created_at?: string; id?: string; order_id?: string; rating?: number; reviewee_id?: string; reviewer_id?: string }
+        Relationships: [
+          { foreignKeyName: "bazar_reviews_order_id_fkey"; columns: ["order_id"]; isOneToOne: true; referencedRelation: "bazar_orders"; referencedColumns: ["id"] },
+        ]
+      }
+      bazar_seller_private: {
+        Row: { bank_account: string; phone: string | null; updated_at: string; user_id: string }
+        Insert: { bank_account: string; phone?: string | null; updated_at?: string; user_id: string }
+        Update: { bank_account?: string; phone?: string | null; updated_at?: string; user_id?: string }
+        Relationships: [
+          { foreignKeyName: "bazar_seller_private_user_id_fkey"; columns: ["user_id"]; isOneToOne: true; referencedRelation: "bazar_sellers"; referencedColumns: ["user_id"] },
+        ]
+      }
+      bazar_sellers: {
+        Row: { city: string | null; created_at: string; is_admin: boolean; is_barevia: boolean; nickname: string; updated_at: string; user_id: string }
+        Insert: { city?: string | null; created_at?: string; is_admin?: boolean; is_barevia?: boolean; nickname: string; updated_at?: string; user_id: string }
+        Update: { city?: string | null; created_at?: string; is_admin?: boolean; is_barevia?: boolean; nickname?: string; updated_at?: string; user_id?: string }
+        Relationships: [
+          { foreignKeyName: "bazar_sellers_user_id_fkey"; columns: ["user_id"]; isOneToOne: true; referencedRelation: "profiles"; referencedColumns: ["id"] },
+        ]
+      }
       child_guardians: {
         Row: {
           child_id: string
@@ -349,6 +542,10 @@ export type Database = {
       }
     }
     Views: {
+      bazar_seller_ratings: {
+        Row: { avg_rating: number | null; review_count: number | null; seller_id: string | null }
+        Relationships: []
+      }
       child_growth: {
         Row: {
           age_months: number | null
@@ -450,10 +647,31 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      bazar_cancel_order: { Args: { p_order_id: string }; Returns: undefined }
+      bazar_confirm_received: { Args: { p_order_id: string }; Returns: undefined }
+      bazar_create_order: {
+        Args: {
+          p_buyer_email: string
+          p_buyer_name: string
+          p_buyer_phone?: string
+          p_listing_id: string
+          p_pickup_point_id: string
+          p_pickup_point_name: string
+        }
+        Returns: string
+      }
+      bazar_get_payment_details: {
+        Args: { p_order_id: string }
+        Returns: { amount_czk: number; bank_account: string; seller_nickname: string; variable_symbol: string }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      bazar_condition: "jako_nove" | "lehce_nosene" | "nosene" | "hodne_nosene"
+      bazar_gender: "unisex" | "holka" | "kluk"
+      bazar_listing_status: "koncept" | "aktivni" | "rezervovano" | "prodano" | "skryto"
+      bazar_order_status: "ceka_na_postovne" | "postovne_zaplaceno" | "k_odeslani" | "na_ceste" | "doruceno" | "dokonceno" | "zruseno"
+      bazar_photo_kind: "celek" | "podrazka" | "stelka" | "detail"
+      bazar_width: "uzka" | "normalni" | "siroka"
     }
     CompositeTypes: {
       [_ in never]: never

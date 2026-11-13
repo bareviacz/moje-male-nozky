@@ -76,3 +76,21 @@ proxy.ts                   obnova přihlášení + ochrana stránek
 
 Aplikace odkazuje na zásady z e-shopu (`lib/config.ts` → `PRIVACY_URL`). Ověřte přesnou adresu stránky
 a doplňte do zásad údaje o dětech, které aplikace ukládá (jméno, datum narození, míry chodidel, boty).
+
+## Bazárek (bazar.barevia.cz)
+
+Bazar obnošených barefoot bot je součástí této aplikace (`app/bazar/`), sdílí přihlášení i databázi.
+Rodiče si v něm vystavují boty – i rovnou z evidence (vyřazené boty → „Prodat v bazaru“) – a nabídku
+si filtrují podle délky nožky dítěte (vnitřní délka o 8–12 mm delší).
+
+- Tabulky `bazar_*` v Supabase, fotky ve veřejném úložišti `bazar-photos` (`<user>/<inzerát>/…`).
+- Veřejná přezdívka je v `bazar_sellers`; jméno z Moje malé nožky zůstává soukromé.
+- Číslo účtu prodejce (`bazar_seller_private`) uvidí kupující až po zaplacení poštovného – v QR platbě.
+- Kupní cenu platí kupující přímo prodejci (QR platba), poštovné Barevii.
+- Správa objednávek a nahlášených inzerátů: `/bazar/admin` (jen pro `bazar_sellers.is_admin`).
+- Doména: na Vercelu přidejte `bazar.barevia.cz` ke stejnému projektu a u Wedosu CNAME `bazar` → `cname.vercel-dns.com`.
+  `proxy.ts` pak na téhle adrese automaticky zobrazuje bazar.
+- Proměnná `NEXT_PUBLIC_PACKETA_API_KEY` zapne mapu výdejních míst Zásilkovny při nákupu.
+
+Zatím ručně (doplní se po domluvě s Comgate a Zásilkovnou): platba poštovného a založení zásilky
+s podacím kódem – obojí nastavuje Barevia v `/bazar/admin`.

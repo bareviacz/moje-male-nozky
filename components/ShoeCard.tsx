@@ -60,7 +60,10 @@ export function ShoeCard({ shoe }: { shoe: ShoeView }) {
             {details && ' · '}vyřazeno {formatDate(shoe.retiredAt)}
           </span>
         </div>
-        <div className="flex items-center">
+        <div className="flex flex-wrap items-center justify-end">
+          <Link href={`/bazar/prodat?bota=${shoe.id}`} className="inline-flex h-11 items-center rounded-xl bg-sun-soft px-3 text-sm font-bold text-sun-deep hover:bg-[#FBE7BE]">
+            Prodat v bazaru
+          </Link>
           <Link href={`/boty/${shoe.id}/upravit`} className="inline-flex h-11 items-center rounded-xl px-3 text-sm font-bold text-forest hover:bg-forest-soft">
             Upravit
           </Link>

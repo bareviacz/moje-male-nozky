@@ -130,6 +130,17 @@ export default async function ShoesPage({
         {tab(`/boty?dite=${child.id}&vyrazene=1`, `Vyřazené (${retiredCount})`, showRetired)}
       </div>
 
+      <Link
+        href={showRetired ? '/bazar/prodat' : `/bazar?dite=${child.id}`}
+        className="flex items-center justify-between gap-3 rounded-2xl bg-sun-soft px-4 py-3 text-sm text-sun-deep hover:bg-[#FBE7BE]"
+      >
+        <span>
+          <strong>Bazárek Barevia:</strong>{' '}
+          {showRetired ? 'boty, ze kterých děti vyrostly, prodáte jedním klepnutím.' : 'obnošené barefoot boty vybrané podle délky nožky.'}
+        </span>
+        <span aria-hidden="true" className="font-bold">→</span>
+      </Link>
+
       {!last && !showRetired && (
         <p className="rounded-2xl bg-sun-soft px-4 py-3 text-sm text-sun-deep">
           {child.name} zatím nemá žádné měření, rezervu v botách proto nespočítáme.{' '}

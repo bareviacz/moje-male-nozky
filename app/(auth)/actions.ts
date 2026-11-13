@@ -7,6 +7,11 @@ import { createClient } from '@/lib/supabase/server'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+/** Kam po přihlášení: jen do bazaru (?next=/bazar/...), jinak přehled. */
+function safeNext(next: string) {
+  return /^\/bazar(\/[\w\-/]*)?$/.test(next) ? next : '/prehled'
+}
+
 export async function signIn(_: FormState, formData: FormData): Promise<FormState> {
   const email = str(formData, 'email')
   const password = String(formData.get('password') ?? '')
@@ -16,7 +21,7 @@ export async function signIn(_: FormState, formData: FormData): Promise<FormStat
   const { error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) return fail(formData, authErrorCs(error))
 
-  redirect('/prehled')
+  redirect(safeNext(str(formData, 'next')))
 }
 
 export async function signUp(_: FormState, formData: FormData): Promise<FormState> {

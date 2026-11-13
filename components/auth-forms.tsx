@@ -14,7 +14,7 @@ import { MailIcon } from './icons'
 import { SubmitButton } from './SubmitButton'
 import { btn, Field, FormMessage, inputClass } from './ui'
 
-export function LoginForm() {
+export function LoginForm({ next }: { next?: string } = {}) {
   const [state, action] = useActionState(signIn, undefined)
   const [magic, magicAction] = useActionState(sendMagicLink, undefined)
   const [email, setEmail] = useState('')
@@ -22,6 +22,7 @@ export function LoginForm() {
   return (
     <div className="flex flex-col gap-6">
       <form action={action} className="flex flex-col gap-4">
+        {next && <input type="hidden" name="next" value={next} />}
         <Field label="E-mail" htmlFor="email">
           <input
             id="email"
