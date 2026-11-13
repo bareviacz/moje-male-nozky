@@ -2,14 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { HomeIcon, PlusIcon, ProfileIcon, ShoeIcon } from '../icons'
+import { HomeIcon, MailIcon, PlusIcon, ProfileIcon, ShoeIcon } from '../icons'
 import { Logo } from '../Logo'
 import { cx } from '../ui'
 
 const ITEMS = [
   { href: '/bazar', label: 'Nabídka', Icon: ShoeIcon },
+  { href: '/bazar/moje', label: 'Moje', Icon: MailIcon },
   { href: '/bazar/prodat', label: 'Prodat', Icon: PlusIcon, primary: true },
-  { href: '/bazar/moje', label: 'Moje', Icon: ProfileIcon },
+  { href: '/bazar/profil', label: 'Profil', Icon: ProfileIcon },
   { href: '/prehled', label: 'Malé nožky', Icon: HomeIcon },
 ]
 

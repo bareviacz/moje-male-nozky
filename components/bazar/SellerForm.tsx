@@ -9,7 +9,9 @@ export function SellerForm({
   back,
   needAccount,
   initial,
+  submitLabel,
 }: {
+  submitLabel?: string
   back: string
   needAccount: boolean
   initial?: { nickname?: string; city?: string | null; bank_account?: string; phone?: string | null }
@@ -52,7 +54,7 @@ export function SellerForm({
         </>
       )}
       <FormMessage error={state?.error} />
-      <SubmitButton>{needAccount ? 'Uložit a pokračovat' : 'Uložit přezdívku'}</SubmitButton>
+      <SubmitButton>{submitLabel ?? (needAccount ? 'Uložit a pokračovat' : 'Uložit přezdívku')}</SubmitButton>
     </form>
   )
 }
