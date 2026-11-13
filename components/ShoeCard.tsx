@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { restoreShoe, retireShoe } from '@/app/(app)/actions'
 import { ESHOP_URL } from '@/lib/config'
 import { asFitStatus, FIT_BADGE, FIT_BAR, FIT_LABEL, reservePercent, SOON_SMALL_BELOW_MM } from '@/lib/fit'
@@ -43,12 +44,17 @@ export function ShoeCard({ shoe }: { shoe: ShoeView }) {
             {details && ' · '}vyřazeno {formatDate(shoe.retiredAt)}
           </span>
         </div>
-        <form action={restoreShoe}>
-          <input type="hidden" name="shoe_id" value={shoe.id} />
-          <SubmitButton variant="ghost" pendingText="…">
-            Vrátit
-          </SubmitButton>
-        </form>
+        <div className="flex items-center">
+          <Link href={`/boty/${shoe.id}/upravit`} className="inline-flex h-11 items-center rounded-xl px-3 text-sm font-bold text-forest hover:bg-forest-soft">
+            Upravit
+          </Link>
+          <form action={restoreShoe}>
+            <input type="hidden" name="shoe_id" value={shoe.id} />
+            <SubmitButton variant="ghost" pendingText="…">
+              Vrátit
+            </SubmitButton>
+          </form>
+        </div>
       </div>
     )
   }
@@ -102,12 +108,17 @@ export function ShoeCard({ shoe }: { shoe: ShoeView }) {
         </a>
       )}
 
-      <form action={retireShoe} className="-mb-1 flex justify-end">
-        <input type="hidden" name="shoe_id" value={shoe.id} />
-        <SubmitButton variant="ghost" pendingText="Vyřazuji…" className="text-muted hover:text-ink">
-          Vyřadit (už nenosí)
-        </SubmitButton>
-      </form>
+      <div className="-mb-1 flex items-center justify-between gap-2">
+        <Link href={`/boty/${shoe.id}/upravit`} className="inline-flex h-11 items-center rounded-xl px-3 text-sm font-bold text-forest hover:bg-forest-soft">
+          Upravit
+        </Link>
+        <form action={retireShoe}>
+          <input type="hidden" name="shoe_id" value={shoe.id} />
+          <SubmitButton variant="ghost" pendingText="Vyřazuji…" className="text-muted hover:text-ink">
+            Vyřadit (už nenosí)
+          </SubmitButton>
+        </form>
+      </div>
     </div>
   )
 }

@@ -151,7 +151,7 @@ export default async function OverviewPage() {
                   href={`/deti/${c.id}`}
                   className="flex items-center gap-3.5 rounded-[20px] border border-line bg-white p-4 transition hover:border-field"
                 >
-                  <ChildAvatar name={c.name} index={c.index} size="lg" />
+                  <ChildAvatar name={c.name} index={c.index} size="lg" photoUrl={c.photoUrl} />
                   <div className="flex flex-1 flex-col gap-0.5">
                     <span className="text-[17px] font-bold">{c.name}</span>
                     <span className="text-[13px] text-muted">

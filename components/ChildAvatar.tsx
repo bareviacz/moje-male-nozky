@@ -17,15 +17,23 @@ export function ChildAvatar({
   name,
   index,
   size = 'md',
+  photoUrl,
 }: {
   name: string
   index: number
   size?: 'sm' | 'md' | 'lg'
+  photoUrl?: string | null
 }) {
   const sizes = {
     sm: 'size-[30px] rounded-full text-sm',
     md: 'size-12 rounded-2xl text-xl',
     lg: 'size-[52px] rounded-2xl text-[22px]',
+  }
+  if (photoUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={photoUrl} alt="" aria-hidden="true" className={cx('shrink-0 bg-line object-cover', sizes[size])} />
+    )
   }
   return (
     <span

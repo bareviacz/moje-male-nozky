@@ -43,7 +43,7 @@ export default async function NewShoePage({ searchParams }: { searchParams: Prom
         <PageTitle>Přidat boty</PageTitle>
       </div>
       <ShoeForm
-        items={children.map(({ id, name, index }) => ({ id, name, index }))}
+        items={children.map(({ id, name, index, photoUrl }) => ({ id, name, index, photoUrl }))}
         defaultChildId={defaultChildId}
         lastLength={Object.fromEntries(children.map((c) => [c.id, lastByChild.get(c.id)?.foot_length_mm ?? null]))}
         categories={categories.map(({ code, name }) => ({ code, name }))}

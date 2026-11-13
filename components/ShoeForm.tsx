@@ -1,11 +1,22 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { createShoe } from '@/app/(app)/actions'
+import { saveShoe } from '@/app/(app)/actions'
 import { FIT_BADGE, FIT_LABEL, NEW_SHOE_MAX_EXTRA_MM, SOON_SMALL_BELOW_MM, type FitStatus } from '@/lib/fit'
 import { ChildPicker, type PickerChild } from './ChildPicker'
 import { SubmitButton } from './SubmitButton'
 import { cx, Field, FormMessage, inputClass } from './ui'
+
+export type ShoeInitial = {
+  id: string
+  category: string | null
+  brand: string | null
+  model: string | null
+  eu_size: number | null
+  inner_length_mm: number | null
+  inner_width_mm: number | null
+  purchased_at: string | null
+}
 
 function statusFor(reserve: number): FitStatus {
   if (reserve <= 0) return 'too_small'
@@ -20,16 +31,22 @@ export function ShoeForm({
   lastLength,
   categories,
   today,
+  initial,
 }: {
   items: PickerChild[]
   defaultChildId: string
   lastLength: Record<string, number | null>
   categories: { code: string; name: string }[]
   today: string
+  initial?: ShoeInitial
 }) {
-  const [state, action] = useActionState(createShoe, undefined)
+  const [state, action] = useActionState(saveShoe, undefined)
   const [childId, setChildId] = useState(defaultChildId)
-  const [inner, setInner] = useState('')
+  const [inner, setInner] = useState(initial?.inner_length_mm != null ? String(initial.inner_length_mm) : '')
+  const init = (k: keyof ShoeInitial) => {
+    const x = initial?.[k]
+    return x == null ? undefined : String(x)
+  }
 
   const foot = lastLength[childId] ?? null
   const innerNum = Number(inner)
@@ -39,10 +56,11 @@ export function ShoeForm({
 
   return (
     <form action={action} className="flex flex-col gap-4">
+      {initial && <input type="hidden" name="shoe_id" value={initial.id} />}
       <ChildPicker items={items} value={childId} onChange={setChildId} legend="Čí boty" />
 
       <Field label="Druh obuvi" htmlFor="category">
-        <select id="category" name="category" defaultValue={v?.category ?? ''} className={inputClass}>
+        <select id="category" name="category" defaultValue={v?.category ?? init('category') ?? ''} className={inputClass}>
           <option value="">Vyberte…</option>
           {categories.map((c) => (
             <option key={c.code} value={c.code}>
@@ -54,16 +72,16 @@ export function ShoeForm({
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="Značka" htmlFor="brand">
-          <input id="brand" name="brand" type="text" maxLength={100} defaultValue={v?.brand} placeholder="např. Bugga" className={inputClass} />
+          <input id="brand" name="brand" type="text" maxLength={100} defaultValue={v?.brand ?? init('brand')} placeholder="např. Bugga" className={inputClass} />
         </Field>
         <Field label="Model" htmlFor="model">
-          <input id="model" name="model" type="text" maxLength={200} defaultValue={v?.model} className={inputClass} />
+          <input id="model" name="model" type="text" maxLength={200} defaultValue={v?.model ?? init('model')} className={inputClass} />
         </Field>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="EU velikost" htmlFor="eu_size">
-          <input id="eu_size" name="eu_size" type="text" inputMode="decimal" defaultValue={v?.eu_size} placeholder="např. 25" className={inputClass} />
+          <input id="eu_size" name="eu_size" type="text" inputMode="decimal" defaultValue={v?.eu_size ?? init('eu_size')?.replace('.', ',')} placeholder="např. 25" className={inputClass} />
         </Field>
         <Field label="Vnitřní délka (mm)" htmlFor="inner_length_mm">
           <input
@@ -83,10 +101,10 @@ export function ShoeForm({
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="Vnitřní šířka (mm)" htmlFor="inner_width_mm">
-          <input id="inner_width_mm" name="inner_width_mm" type="number" inputMode="numeric" min={20} max={160} defaultValue={v?.inner_width_mm} className={inputClass} />
+          <input id="inner_width_mm" name="inner_width_mm" type="number" inputMode="numeric" min={20} max={160} defaultValue={v?.inner_width_mm ?? init('inner_width_mm')} className={inputClass} />
         </Field>
         <Field label="Koupeno" htmlFor="purchased_at">
-          <input id="purchased_at" name="purchased_at" type="date" max={today} defaultValue={v?.purchased_at} className={inputClass} />
+          <input id="purchased_at" name="purchased_at" type="date" max={today} defaultValue={v?.purchased_at ?? init('purchased_at')} className={inputClass} />
         </Field>
       </div>
 
@@ -107,7 +125,7 @@ export function ShoeForm({
       </div>
 
       <FormMessage error={state?.error} />
-      <SubmitButton className="mt-1">Uložit boty</SubmitButton>
+      <SubmitButton className="mt-1">{initial ? 'Uložit změny' : 'Uložit boty'}</SubmitButton>
     </form>
   )
 }

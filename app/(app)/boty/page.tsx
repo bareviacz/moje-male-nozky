@@ -106,7 +106,7 @@ export default async function ShoesPage({
                 selected ? 'border-2 border-forest font-bold' : 'border-[1.5px] border-field font-semibold',
               )}
             >
-              <ChildAvatar name={c.name} index={c.index} size="sm" />
+              <ChildAvatar name={c.name} index={c.index} size="sm" photoUrl={c.photoUrl} />
               {c.name}
               {selected && len != null && <span className="font-semibold text-muted">· {len} mm</span>}
             </Link>

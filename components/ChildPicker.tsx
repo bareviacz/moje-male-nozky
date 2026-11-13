@@ -2,7 +2,7 @@
 
 import { ChildAvatar } from './ChildAvatar'
 
-export type PickerChild = { id: string; name: string; index: number }
+export type PickerChild = { id: string; name: string; index: number; photoUrl?: string | null }
 
 /** Výběr dítěte jako „pilulky“ (přístupné radio buttony). */
 export function ChildPicker({
@@ -33,7 +33,7 @@ export function ChildPicker({
               onChange={() => onChange(c.id)}
               className="sr-only"
             />
-            <ChildAvatar name={c.name} index={c.index} size="sm" />
+            <ChildAvatar name={c.name} index={c.index} size="sm" photoUrl={c.photoUrl} />
             {c.name}
           </label>
         ))}

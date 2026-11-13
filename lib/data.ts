@@ -1,9 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from './database.types'
+import { PHOTO_BUCKET } from './photos'
 
 type Client = SupabaseClient<Database>
 
-export type ChildItem = { id: string; name: string; birth_date: string; index: number }
+export type ChildItem = {
+  id: string
+  name: string
+  birth_date: string
+  index: number
+  avatar_path: string | null
+  photoUrl: string | null
+}
 export type LastMeasurement = {
   measured_at: string
   foot_length_mm: number | null
@@ -15,9 +23,30 @@ export type LastMeasurement = {
 export async function getChildren(supabase: Client): Promise<ChildItem[]> {
   const { data } = await supabase
     .from('children')
-    .select('id, name, birth_date')
+    .select('id, name, birth_date, avatar_path')
     .order('created_at', { ascending: true })
-  return (data ?? []).map((c, index) => ({ ...c, index }))
+  const rows = data ?? []
+  const urls = await signedUrls(
+    supabase,
+    rows.map((c) => c.avatar_path),
+  )
+  return rows.map((c, index) => ({
+    ...c,
+    index,
+    photoUrl: c.avatar_path ? (urls.get(c.avatar_path) ?? null) : null,
+  }))
+}
+
+/** Dočasné odkazy (1 hodina) na soukromé fotky. */
+export async function signedUrls(supabase: Client, paths: (string | null | undefined)[]) {
+  const list = [...new Set(paths.filter((p): p is string => !!p))]
+  const map = new Map<string, string>()
+  if (list.length === 0) return map
+  const { data } = await supabase.storage.from(PHOTO_BUCKET).createSignedUrls(list, 60 * 60)
+  for (const item of data ?? []) {
+    if (item.path && item.signedUrl) map.set(item.path, item.signedUrl)
+  }
+  return map
 }
 
 /** Poslední měření každého dítěte. */

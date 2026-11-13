@@ -47,7 +47,7 @@ export default async function NewMeasurementPage({ searchParams }: { searchParam
     <Page>
       {header}
       <MeasurementForm
-        items={children.map(({ id, name, index }) => ({ id, name, index }))}
+        items={children.map(({ id, name, index, photoUrl }) => ({ id, name, index, photoUrl }))}
         defaultChildId={defaultChildId}
         lastLength={lastLength}
         today={todayIso()}

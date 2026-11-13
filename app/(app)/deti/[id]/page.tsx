@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChildAvatar } from '@/components/ChildAvatar'
+import { AvatarUploader } from '@/components/AvatarUploader'
 import { GrowthChart, type GrowthPoint } from '@/components/GrowthChart'
-import { PlusIcon, ShoeIcon } from '@/components/icons'
+import { EditIcon, PlusIcon, ShoeIcon } from '@/components/icons'
 import { ShoeCard } from '@/components/ShoeCard'
-import { BackLink, btn, Card, EmptyState, Page } from '@/components/ui'
-import { getChildren, getShoeCategories } from '@/lib/data'
+import { BackLink, btn, Card, EmptyState, IconLink, Page } from '@/components/ui'
+import { getChildren, getShoeCategories, signedUrls } from '@/lib/data'
 import { recommendedInnerLength } from '@/lib/fit'
 import { formatAge, formatDate } from '@/lib/format'
 import { isUuid } from '@/lib/forms'
@@ -19,11 +19,12 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
   if (!isUuid(id)) notFound()
 
   const { supabase } = await requireUser()
-  const [children, growthRes, fitRes, categories] = await Promise.all([
+  const [children, growthRes, fitRes, categories, photosRes] = await Promise.all([
     getChildren(supabase),
     supabase.from('child_growth').select('*').eq('child_id', id).order('measured_at', { ascending: true }),
     supabase.from('shoe_fit').select('*').eq('child_id', id),
     getShoeCategories(supabase),
+    supabase.from('foot_measurements').select('id, photo_path').eq('child_id', id).not('photo_path', 'is', null),
   ])
 
   const child = children.find((c) => c.id === id)
@@ -39,15 +40,33 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
   const recommended = last?.foot_length_mm != null ? recommendedInnerLength(last.foot_length_mm) : null
   const categoryByCode = new Map(categories.map((c) => [c.code, c]))
 
+  // Fotky nožek u měření (dočasné odkazy)
+  const photoRows = photosRes.data ?? []
+  const photoUrlByPath = await signedUrls(supabase, photoRows.map((p) => p.photo_path))
+  const photoByMeasurement = new Map(
+    photoRows
+      .filter((p) => p.photo_path && photoUrlByPath.has(p.photo_path))
+      .map((p) => [p.id, photoUrlByPath.get(p.photo_path!)!]),
+  )
+
   return (
     <Page>
       <div className="flex items-center gap-3">
         <BackLink href="/deti" />
-        <ChildAvatar name={child.name} index={child.index} />
+        <AvatarUploader
+          childId={child.id}
+          name={child.name}
+          index={child.index}
+          photoUrl={child.photoUrl}
+          currentPath={child.avatar_path}
+        />
         <div className="flex flex-1 flex-col">
           <h1 className="font-display text-[22px] font-bold">{child.name}</h1>
           <span className="text-[13px] text-muted">{formatAge(child.birth_date)}</span>
         </div>
+        <IconLink href={`/deti/${child.id}/upravit`} label={`Upravit – ${child.name}`}>
+          <EditIcon className="size-5" />
+        </IconLink>
       </div>
 
       {!last ? (
@@ -121,13 +140,33 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
           <ul className="divide-y divide-line overflow-hidden rounded-[20px] border border-line bg-white">
             {[...rows].reverse().map((r) => (
               <li key={r.measurement_id} className="flex items-center justify-between gap-3 px-4 py-3">
-                <div className="flex flex-col">
+                {r.measurement_id && photoByMeasurement.has(r.measurement_id) && (
+                  <a
+                    href={photoByMeasurement.get(r.measurement_id)}
+                    target="_blank"
+                    rel="noopener"
+                    aria-label={`Fotka nožky z ${formatDate(r.measured_at!)}`}
+                    className="shrink-0"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photoByMeasurement.get(r.measurement_id)}
+                      alt=""
+                      className="size-11 rounded-xl object-cover ring-1 ring-line"
+                    />
+                  </a>
+                )}
+                <div className="flex flex-1 flex-col">
                   <span className="text-[15px] font-semibold">{formatDate(r.measured_at!)}</span>
                   <span className="text-xs text-muted">
                     L {r.left_length_mm ?? '–'} · P {r.right_length_mm ?? '–'} mm
                   </span>
                 </div>
-                <div className="flex flex-col items-end">
+                <Link
+                  href={`/mereni/${r.measurement_id}/upravit`}
+                  className="flex flex-col items-end rounded-xl px-2 py-1 hover:bg-ground"
+                  aria-label={`Upravit měření z ${formatDate(r.measured_at!)}`}
+                >
                   <span className="font-display text-lg font-bold">{r.foot_length_mm} mm</span>
                   {r.growth_mm != null && r.growth_mm !== 0 && (
                     <span className="text-xs font-bold text-forest">
@@ -135,7 +174,8 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
                       {r.growth_mm} mm
                     </span>
                   )}
-                </div>
+                  <span className="text-xs font-bold text-forest">Upravit</span>
+                </Link>
               </li>
             ))}
           </ul>

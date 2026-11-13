@@ -73,6 +73,12 @@ export const CalendarIcon = (p: IconProps) => (
     <path d="M3.5 10h17M8 3v4M16 3v4" />
   </Svg>
 )
+export const CameraIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M4 8h3l2-2.5h6L17 8h3v11H4z" />
+    <circle cx="12" cy="13" r="3.5" />
+  </Svg>
+)
 export const EditIcon = (p: IconProps) => (
   <Svg {...p}><path d="M4 20h4L19 9l-4-4L4 16z" /></Svg>
 )
