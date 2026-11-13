@@ -77,7 +77,7 @@ export function LoginForm({ next }: { next?: string } = {}) {
   )
 }
 
-export function RegisterForm() {
+export function RegisterForm({ next }: { next?: string } = {}) {
   const [state, action] = useActionState(signUp, undefined)
 
   if (state?.success)
@@ -92,6 +92,7 @@ export function RegisterForm() {
 
   return (
     <form action={action} className="flex flex-col gap-4">
+      {next && <input type="hidden" name="next" value={next} />}
       <Field label="Vaše jméno" htmlFor="name">
         <input id="name" name="name" type="text" defaultValue={state?.values?.name} autoComplete="given-name" placeholder="např. Jana" required maxLength={100} className={inputClass} />
       </Field>

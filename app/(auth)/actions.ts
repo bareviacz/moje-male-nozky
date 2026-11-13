@@ -34,21 +34,27 @@ export async function signUp(_: FormState, formData: FormData): Promise<FormStat
   if (password.length < 8) return fail(formData, 'Heslo musí mít alespoň 8 znaků.')
   if (formData.get('gdpr') !== 'on') return fail(formData, 'Pro registraci je potřeba souhlas se zpracováním údajů.')
 
+  const next = safeNext(str(formData, 'next'))
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: { display_name: name.slice(0, 100) },
-      emailRedirectTo: `${SITE_URL}/auth/confirm?next=/prehled`,
+      emailRedirectTo: `${SITE_URL}/auth/confirm?next=${encodeURIComponent(next)}`,
     },
   })
   if (error) return fail(formData, authErrorCs(error))
 
   // Když je potvrzování e-mailu vypnuté, je uživatel rovnou přihlášený.
-  if (data.session) redirect('/prehled')
+  if (data.session) redirect(next)
 
-  return { success: `Hotovo! Na ${email} jsme poslali odkaz pro potvrzení účtu.` }
+  return {
+    success:
+      next.startsWith('/bazar')
+        ? `Hotovo! Na ${email} jsme poslali odkaz pro potvrzení účtu. Po kliknutí na něj se vrátíte rovnou do bazaru.`
+        : `Hotovo! Na ${email} jsme poslali odkaz pro potvrzení účtu.`,
+  }
 }
 
 export async function sendMagicLink(_: FormState, formData: FormData): Promise<FormState> {
