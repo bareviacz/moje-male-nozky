@@ -135,7 +135,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
               <label htmlFor="max" className="text-sm font-bold">Cena do (Kč)</label>
               <input id="max" name="max" type="number" inputMode="numeric" min={0} step={50} defaultValue={sp.max} className={inputClass} />
             </div>
-            <Select id="prodava" label="Prodává" value={sp.prodava} options={[['barevia', 'Barevia'], ['rodice', 'Rodiče']]} all="Kdokoli" />
+            <Select id="prodava" label="Prodává" value={sp.prodava} options={[['barevia', 'Barevia.cz'], ['rodice', 'Ostatní']]} all="Kdokoli" />
             <Select
               id="razeni"
               label="Řadit"
