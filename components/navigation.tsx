@@ -101,6 +101,13 @@ export function SideNav() {
         })}
       </ul>
       <Link
+        href="/bazar"
+        className="flex h-[46px] items-center gap-3 rounded-xl bg-sun-soft px-3 text-[15px] font-bold text-sun-deep hover:bg-[#FBE7BE]"
+      >
+        <ShoeIcon className="size-[22px]" strokeWidth={1.8} />
+        Bazárek
+      </Link>
+      <Link
         href="/mereni/nove"
         className="flex h-[50px] items-center justify-center gap-2 rounded-[14px] bg-forest text-[15px] font-bold text-white hover:bg-forest-dark"
       >

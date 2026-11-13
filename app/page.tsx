@@ -56,6 +56,9 @@ export default function HomePage() {
               Už mám účet – přihlásit se
             </Link>
           </div>
+          <Link href="/bazar" className="text-center text-[15px] font-bold text-forest underline">
+            Bazárek: obnošené barefoot botičky od rodičů
+          </Link>
         </div>
       </div>
 
