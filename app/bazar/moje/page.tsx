@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { coverPhoto } from '@/components/bazar/ListingCard'
+import { getSellerReviews, ReviewList } from '@/components/bazar/Reviews'
 import { MessageForm } from '@/components/bazar/SmallForms'
 import { btn, Card, cx, EmptyState, PageTitle } from '@/components/ui'
 import {
@@ -56,6 +57,8 @@ export default async function MinePage() {
       .order('created_at', { ascending: false }),
     supabase.from('bazar_messages').select('id', { count: 'exact', head: true }).eq('recipient_id', user.id).is('read_at', null),
   ])
+
+  const myReviews = await getSellerReviews(supabase, user.id, 20)
 
   // Zprávy: konverzace podle inzerátu a druhé strany
   const { data: msgs } = await supabase
@@ -152,6 +155,16 @@ export default async function MinePage() {
             </p>
           </Card>
         )}
+      </section>
+
+      <section className="flex flex-col gap-3" aria-labelledby="hodnoceni-h">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 id="hodnoceni-h" className="font-display text-xl font-bold">Moje hodnocení</h2>
+          <Link href={`/bazar/prodejce/${user.id}`} className="text-sm font-bold text-forest">Můj veřejný profil</Link>
+        </div>
+        <Card className="p-4">
+          <ReviewList reviews={myReviews} empty="Zatím vás nikdo nehodnotil. Hodnocení přidává kupující po převzetí bot." />
+        </Card>
       </section>
 
       <section className="flex scroll-mt-24 flex-col gap-3" id="zpravy" aria-labelledby="zpravy-h">

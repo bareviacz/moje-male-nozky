@@ -172,15 +172,17 @@ export default async function ListingPage({
                 {(seller?.nickname ?? '?').slice(0, 1).toUpperCase()}
               </span>
               <div className="flex flex-col">
-                <span className="font-bold">
+                <Link href={`/bazar/prodejce/${l.seller_id}`} className="font-bold text-forest underline-offset-2 hover:underline">
                   {seller?.nickname} {seller?.city && <span className="font-normal text-muted">· {seller.city}</span>}
-                </span>
+                </Link>
                 <span className="text-sm text-muted tabular-nums">
                   {rating?.review_count ? (
                     <><span className="text-sun" aria-hidden="true">★</span> {String(rating.avg_rating).replace('.', ',')} z 5 · {rating.review_count} hodnocení</>
                   ) : (
                     'Zatím bez hodnocení'
                   )}
+                  {' · '}
+                  <Link href={`/bazar/prodejce/${l.seller_id}`} className="font-semibold text-forest">Profil a hodnocení</Link>
                 </span>
               </div>
             </div>
