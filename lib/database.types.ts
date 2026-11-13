@@ -15,6 +15,20 @@ export type Database = {
   }
   public: {
     Tables: {
+      catalog_products: {
+        Row: { active: boolean; brand: string; category: string; gender: string; id: string; image_url: string | null; name: string; price_czk: number; shoptet_guid: string; updated_at: string; url: string }
+        Insert: { active?: boolean; brand: string; category: string; gender?: string; id?: string; image_url?: string | null; name: string; price_czk: number; shoptet_guid: string; updated_at?: string; url: string }
+        Update: { active?: boolean; brand?: string; category?: string; gender?: string; id?: string; image_url?: string | null; name?: string; price_czk?: number; shoptet_guid?: string; updated_at?: string; url?: string }
+        Relationships: []
+      }
+      catalog_variants: {
+        Row: { in_stock: boolean | null; inner_length_mm: number; product_id: string; size_eu: number }
+        Insert: { in_stock?: boolean | null; inner_length_mm: number; product_id: string; size_eu: number }
+        Update: { in_stock?: boolean | null; inner_length_mm?: number; product_id?: string; size_eu?: number }
+        Relationships: [
+          { foreignKeyName: "catalog_variants_product_id_fkey"; columns: ["product_id"]; isOneToOne: false; referencedRelation: "catalog_products"; referencedColumns: ["id"] },
+        ]
+      }
       bazar_favorites: {
         Row: { created_at: string; listing_id: string; user_id: string }
         Insert: { created_at?: string; listing_id: string; user_id: string }

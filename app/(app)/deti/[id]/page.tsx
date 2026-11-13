@@ -7,6 +7,7 @@ import { EditIcon, PlusIcon, ShoeIcon } from '@/components/icons'
 import { ShoeCard } from '@/components/ShoeCard'
 import { BackLink, btn, Card, EmptyState, IconLink, Page } from '@/components/ui'
 import { getChildren, getShoeCategories, signedUrls } from '@/lib/data'
+import { CatalogPicks } from '@/components/CatalogPicks'
 import { recommendedInnerLength } from '@/lib/fit'
 import { formatAge, formatDate } from '@/lib/format'
 import { isUuid } from '@/lib/forms'
@@ -19,12 +20,13 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
   if (!isUuid(id)) notFound()
 
   const { supabase } = await requireUser()
-  const [children, growthRes, fitRes, categories, photosRes] = await Promise.all([
+  const [children, growthRes, fitRes, categories, photosRes, sexRes] = await Promise.all([
     getChildren(supabase),
     supabase.from('child_growth').select('*').eq('child_id', id).order('measured_at', { ascending: true }),
     supabase.from('shoe_fit').select('*').eq('child_id', id),
     getShoeCategories(supabase),
     supabase.from('foot_measurements').select('id, photo_path').eq('child_id', id).not('photo_path', 'is', null),
+    supabase.from('children').select('sex').eq('id', id).maybeSingle(),
   ])
   const { data: shoePhotoRows } = await supabase.from('shoes').select('id, photo_path, photo_path_2').eq('child_id', id)
 
@@ -152,6 +154,10 @@ export default async function ChildDetailPage({ params }: { params: Promise<{ id
                 Najít boty
               </Link>
             </Card>
+          )}
+
+          {last.foot_length_mm != null && (
+            <CatalogPicks supabase={supabase} footMm={last.foot_length_mm} sex={sexRes.data?.sex ?? null} />
           )}
         </>
       )}
