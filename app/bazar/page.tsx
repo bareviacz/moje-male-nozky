@@ -114,13 +114,18 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
                 k.foot ? (
                   <Link
                     key={k.id}
-                    href={`/bazar?dite=${k.id}`}
+                    href={chipHref(sp, kid?.id === k.id ? null : k.id)}
+                    aria-pressed={kid?.id === k.id}
+                    title={kid?.id === k.id ? 'Zrušit výběr' : undefined}
                     className={cx(
-                      'rounded-full px-3 py-1.5 text-sm font-bold',
+                      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold',
                       kid?.id === k.id ? 'bg-forest text-white' : 'bg-white text-forest ring-1 ring-forest/30',
                     )}
                   >
                     {k.name} · {k.foot} mm
+                    {kid?.id === k.id && (
+                      <span aria-hidden="true" className="-mr-1 text-base leading-none opacity-80">×</span>
+                    )}
                   </Link>
                 ) : null,
               )}
@@ -179,7 +184,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
           <h1 id="nabidka" className="font-display text-[28px] leading-tight font-bold text-balance">Bazarové barefoot botičky</h1>
           <p className="text-sm text-muted tabular-nums" aria-live="polite">
             {r
-              ? `${listings.length} párů s vnitřní délkou ${r.min}–${r.max} mm${kid ? ` pro ${kid.name}` : ''}.`
+              ? `${listings.length} párů s vnitřní délkou ${r.min}–${r.max} mm${kid ? ` (${kid.name})` : ''}.`
               : `${listings.length} párů v nabídce.`}
           </p>
         </div>
@@ -202,6 +207,18 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
       </section>
     </div>
   )
+}
+
+/** Odkaz na čip dítěte: vybere ho, nebo (je-li vybrané) zruší – ostatní filtry zůstanou. */
+function chipHref(sp: Search, childId: string | null) {
+  const q = new URLSearchParams()
+  for (const [key, val] of Object.entries(sp)) {
+    if (key === 'dite' || key === 'noha' || typeof val !== 'string' || !val) continue
+    q.set(key, val)
+  }
+  if (childId) q.set('dite', childId)
+  const s = q.toString()
+  return s ? `/bazar?${s}` : '/bazar'
 }
 
 function Select({ id, label, value, options, all }: { id: string; label: string; value?: string; options: [string, string][]; all: string }) {
