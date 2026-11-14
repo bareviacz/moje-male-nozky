@@ -121,3 +121,10 @@ export function spayd({ iban, amount, vs, message }: { iban: string; amount: num
     .slice(0, 60)
   return `SPD*1.0*ACC:${iban}*AM:${amount.toFixed(2)}*CC:CZK*X-VS:${vs}*MSG:${msg}`
 }
+
+/** Známé barefoot značky dětských bot (nabídka ve formuláři a ve filtru). */
+export const BAREFOOT_BRANDS = [
+  'Affenzahn', 'Anatomic', 'Barebarics', 'Be Lenka', 'Beda', 'Bobux', 'Bugga', 'Bundgaard', 'Crave', 'D.D.Step',
+  'Fare Bare', 'Flexi Nens', 'Freet', 'Froddo', 'Groundies', 'Jonap', 'Koel', 'Leguano', 'Lurchi', 'Magical Shoes',
+  'Peerko', 'Pegres', 'Protetika', 'Saltic', 'Shapen', 'Ten Little', 'Tikki', 'Vivobarefoot', 'Wildling', 'Xero Shoes', 'Zaqq',
+] as const

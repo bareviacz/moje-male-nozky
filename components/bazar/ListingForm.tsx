@@ -2,7 +2,7 @@
 
 import { useActionState, useMemo, useRef, useState } from 'react'
 import { createListing } from '@/app/bazar/actions'
-import { BAZAR_BUCKET, CONDITION_LABEL, PHOTO_KIND_LABEL, WIDTH_LABEL, type BazarPhotoKind } from '@/lib/bazar'
+import { BAREFOOT_BRANDS, BAZAR_BUCKET, CONDITION_LABEL, PHOTO_KIND_LABEL, WIDTH_LABEL, type BazarPhotoKind } from '@/lib/bazar'
 import type { FormState } from '@/lib/forms'
 import { resizeImage } from '@/lib/photos'
 import { createClient } from '@/lib/supabase/client'
@@ -144,7 +144,12 @@ export function ListingForm({
 
       <div className="grid grid-cols-2 gap-3">
         <Field label="Značka" htmlFor="brand">
-          <input id="brand" name="brand" type="text" maxLength={40} defaultValue={v?.brand ?? val('brand')} placeholder="např. Be Lenka" className={inputClass} />
+          <input id="brand" name="brand" type="text" list="barefoot-brands" maxLength={40} defaultValue={v?.brand ?? val('brand')} placeholder="vyberte nebo napište" autoComplete="off" className={inputClass} />
+          <datalist id="barefoot-brands">
+            {BAREFOOT_BRANDS.map((b) => (
+              <option key={b} value={b} />
+            ))}
+          </datalist>
         </Field>
         <Field label="Model (nepovinné)" htmlFor="model">
           <input id="model" name="model" type="text" maxLength={60} defaultValue={v?.model ?? val('model')} className={inputClass} />

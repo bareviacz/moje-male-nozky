@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { FiltersToggle } from '@/components/bazar/FiltersToggle'
 import { ListingCard, type ListingCardData } from '@/components/bazar/ListingCard'
 import { btn, cx, EmptyState, inputClass } from '@/components/ui'
-import { CONDITION_LABEL, fitRange, isCondition, isWidth, WIDTH_LABEL } from '@/lib/bazar'
+import { BAREFOOT_BRANDS, CONDITION_LABEL, fitRange, isCondition, isWidth, WIDTH_LABEL } from '@/lib/bazar'
 import { getChildren, getLastMeasurements } from '@/lib/data'
 import { isUuid } from '@/lib/forms'
 import { createClient } from '@/lib/supabase/server'
@@ -16,6 +16,7 @@ type Search = {
   znacka?: string
   max?: string
   prodava?: string
+  mesto?: string
   razeni?: string
 }
 
@@ -45,7 +46,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
   let q = supabase
     .from('bazar_listings')
     .select(
-      'id, brand, model, size_eu, inner_length_mm, width, category, condition, price_czk, status, created_at, bazar_sellers!inner(is_barevia), bazar_listing_photos(storage_path, kind, position)',
+      'id, brand, model, size_eu, inner_length_mm, width, category, condition, price_czk, status, created_at, bazar_sellers!inner(is_barevia, city), bazar_listing_photos(storage_path, kind, position)',
     )
     .in('status', ['aktivni', 'rezervovano'])
 
@@ -58,6 +59,9 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
   if (sp.stav && isCondition(sp.stav)) q = q.in('condition', CONDITION_ORDER.slice(0, CONDITION_ORDER.indexOf(sp.stav) + 1))
   if (sp.znacka && sp.znacka.trim().length >= 2)
     q = q.ilike('brand', `%${sp.znacka.trim().replace(/[%_,()]/g, '').slice(0, 40)}%`)
+  const mesto = sp.mesto?.trim().slice(0, 60) || ''
+  if (mesto) q = q.ilike('bazar_sellers.city', mesto.replace(/[%_,()]/g, ''))
+  if (sp.prodava === 'barevia') q = q.eq('bazar_sellers.is_barevia', true)
   const max = Number(sp.max)
   if (Number.isFinite(max) && max > 0) q = q.lte('price_czk', Math.round(max))
   q =
@@ -65,10 +69,16 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
       ? q.order('price_czk', { ascending: true })
       : q.order('status', { ascending: true }).order('created_at', { ascending: false })
 
-  const { data, error } = await q.limit(120)
+  const [{ data, error }, citiesRes] = await Promise.all([
+    q.limit(120),
+    supabase.from('bazar_listings').select('bazar_sellers!inner(city)').in('status', ['aktivni', 'rezervovano']).limit(1000),
+  ])
+  const cities = [
+    ...new Set((citiesRes.data ?? []).map((r) => r.bazar_sellers?.city?.trim()).filter((c): c is string => !!c)),
+  ].sort((a, b) => a.localeCompare(b, 'cs'))
+  const brands = [...BAREFOOT_BRANDS]
 
   const listings: ListingCardData[] = (data ?? [])
-    .filter((l) => (sp.prodava === 'barevia' ? l.bazar_sellers?.is_barevia : sp.prodava === 'rodice' ? !l.bazar_sellers?.is_barevia : true))
     .map((l) => ({
     id: l.id,
     brand: l.brand,
@@ -88,7 +98,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
     listings.sort((a, b) => Math.abs(a.inner_length_mm - ideal) - Math.abs(b.inner_length_mm - ideal))
   }
 
-  const anyFilter = !!(sp.druh || sp.sirka || sp.stav || sp.znacka || sp.max || sp.prodava)
+  const anyFilter = !!(sp.druh || sp.sirka || sp.stav || sp.znacka || sp.max || sp.prodava || mesto)
   const r = foot ? fitRange(foot) : null
 
   return (
@@ -127,15 +137,28 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
             <Select id="druh" label="Druh" value={sp.druh} options={(categories ?? []).map((c): [string, string] => [c.code, c.name])} all="Všechny druhy" />
             <Select id="sirka" label="Šířka" value={sp.sirka} options={Object.entries(WIDTH_LABEL)} all="Vše" />
             <Select id="stav" label="Stav" value={sp.stav} options={Object.entries(CONDITION_LABEL).filter(([k]) => k !== 'hodne_nosene')} all="Vše" />
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="znacka" className="text-sm font-bold">Značka</label>
-              <input id="znacka" name="znacka" type="text" defaultValue={sp.znacka} placeholder="např. Be Lenka" className={inputClass} />
-            </div>
+            <Select
+              id="znacka"
+              label="Značka"
+              value={sp.znacka}
+              options={(sp.znacka && !brands.includes(sp.znacka as (typeof BAREFOOT_BRANDS)[number]) ? [sp.znacka, ...brands] : brands).map((b): [string, string] => [b, b])}
+              all="Všechny značky"
+            />
             <div className="flex flex-col gap-1.5">
               <label htmlFor="max" className="text-sm font-bold">Cena do (Kč)</label>
               <input id="max" name="max" type="number" inputMode="numeric" min={0} step={50} defaultValue={sp.max} className={inputClass} />
             </div>
-            <Select id="prodava" label="Prodává" value={sp.prodava} options={[['barevia', 'Barevia.cz'], ['rodice', 'Ostatní']]} all="Kdokoli" />
+            <Select id="prodava" label="Prodává" value={sp.prodava} options={[['barevia', 'Barevia.cz']]} all="Kdokoli" />
+            <div className="flex flex-col gap-1.5">
+              <Select
+                id="mesto"
+                label="Město"
+                value={mesto}
+                options={(mesto && !cities.includes(mesto) ? [mesto, ...cities] : cities).map((c): [string, string] => [c, c])}
+                all="Kdekoli"
+              />
+              <span className="text-[13px] text-muted">Pro osobní předání – po rezervaci se s prodejcem domluvíte.</span>
+            </div>
             <Select
               id="razeni"
               label="Řadit"
