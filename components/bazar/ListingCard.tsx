@@ -42,7 +42,7 @@ export function ListingCard({ l, footMm }: { l: ListingCardData; footMm?: number
       href={`/bazar/${l.id}`}
       className="group flex flex-col overflow-hidden rounded-[20px] border border-line bg-white transition hover:-translate-y-0.5 hover:border-field motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
-      <div className="relative aspect-[4/3] shrink-0 overflow-hidden bg-ground">
+      <div className="relative aspect-[4/5] shrink-0 overflow-hidden bg-ground">
         {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={publicPhotoUrl(cover.storage_path)} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
