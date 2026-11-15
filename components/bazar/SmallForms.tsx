@@ -1,9 +1,10 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { cancelOrder, markShipped, reportListing, sendMessage, sendReview, setBuyerLabel } from '@/app/bazar/actions'
+import { useFormStatus } from 'react-dom'
+import { cancelOrder, deleteListing, markShipped, reportListing, sendMessage, sendReview, setBuyerLabel } from '@/app/bazar/actions'
 import { SubmitButton } from '../SubmitButton'
-import { cx, FormMessage, inputClass } from '../ui'
+import { btn, cx, FormMessage, inputClass } from '../ui'
 
 export function MessageForm({ listingId, recipientId, label = 'Zeptat se prodejce' }: { listingId: string; recipientId: string; label?: string }) {
   const [state, action] = useActionState(sendMessage, undefined)
@@ -144,5 +145,42 @@ export function BuyerLabelForm({ orderId, current }: { orderId: string; current:
       <FormMessage error={state?.error} success={state?.success} />
       <SubmitButton variant="small" pendingText="Ukládám…">{current ? 'Změnit kód' : 'Poslat kód prodejci'}</SubmitButton>
     </form>
+  )
+}
+
+export function DeleteListingForm({ listingId }: { listingId: string }) {
+  const [state, action] = useActionState(deleteListing, undefined)
+  const [sure, setSure] = useState(false)
+  if (!sure)
+    return (
+      <button type="button" onClick={() => setSure(true)} className={btn.secondary}>
+        Smazat inzerát
+      </button>
+    )
+  return (
+    <form action={action} className="flex flex-col gap-2 rounded-2xl bg-coral-soft p-4">
+      <input type="hidden" name="listing_id" value={listingId} />
+      <p className="text-sm font-bold text-coral-ink">Opravdu smazat? Vrátit to nepůjde.</p>
+      <FormMessage error={state?.error} />
+      <div className="grid grid-cols-2 gap-2">
+        <button type="button" onClick={() => setSure(false)} className={btn.secondary}>
+          Ne, nechat
+        </button>
+        <DangerSubmit />
+      </div>
+    </form>
+  )
+}
+
+function DangerSubmit() {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="inline-flex h-[54px] items-center justify-center rounded-2xl bg-coral-ink px-5 text-base font-bold text-white disabled:opacity-60"
+    >
+      {pending ? 'Mažu…' : 'Ano, smazat'}
+    </button>
   )
 }

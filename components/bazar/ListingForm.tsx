@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useMemo, useRef, useState } from 'react'
-import { createListing } from '@/app/bazar/actions'
+import { createListing, updateListing } from '@/app/bazar/actions'
 import { BAREFOOT_BRANDS, BAZAR_BUCKET, CONDITION_LABEL, PHOTO_KIND_LABEL, WIDTH_LABEL, type BazarPhotoKind } from '@/lib/bazar'
 import type { FormState } from '@/lib/forms'
 import { resizeImage } from '@/lib/photos'
@@ -20,6 +20,22 @@ export type ListingPrefill = {
   category?: string | null
 }
 
+/** Údaje existujícího inzerátu pro úpravu. */
+export type ListingEdit = {
+  id: string
+  brand: string
+  model: string | null
+  size_eu: number
+  inner_length_mm: number
+  inner_width_mm: number | null
+  width: string
+  category: string
+  condition: string
+  price_czk: number
+  description: string | null
+  photos: { kind: BazarPhotoKind; path: string; url: string }[]
+}
+
 const SLOTS: { kind: BazarPhotoKind; required?: boolean; hint: string }[] = [
   { kind: 'celek', required: true, hint: 'z boku · povinná' },
   { kind: 'podrazka', required: true, hint: 'povinná' },
@@ -27,25 +43,32 @@ const SLOTS: { kind: BazarPhotoKind; required?: boolean; hint: string }[] = [
   { kind: 'detail', hint: 'odřeniny apod. · nepovinná' },
 ]
 
-type Slot = { file: File; url: string; path?: string }
+type Slot = { file?: File; url: string; path?: string }
 
 export function ListingForm({
   userId,
   categories,
   prefill,
+  edit,
 }: {
   userId: string
   categories: { code: string; name: string }[]
   prefill?: ListingPrefill
+  edit?: ListingEdit
 }) {
-  const listingId = useMemo(() => crypto.randomUUID(), [])
-  const [photos, setPhotos] = useState<Partial<Record<BazarPhotoKind, Slot>>>({})
+  const newId = useMemo(() => crypto.randomUUID(), [])
+  const listingId = edit?.id ?? newId
+  const [photos, setPhotos] = useState<Partial<Record<BazarPhotoKind, Slot>>>(() => {
+    const init: Partial<Record<BazarPhotoKind, Slot>> = {}
+    for (const p of edit?.photos ?? []) if (!init[p.kind]) init[p.kind] = { url: p.url, path: p.path }
+    return init
+  })
   const photosRef = useRef(photos)
   photosRef.current = photos
 
   function setPhoto(kind: BazarPhotoKind, file: File | null) {
     const old = photosRef.current[kind]
-    if (old) URL.revokeObjectURL(old.url)
+    if (old?.file) URL.revokeObjectURL(old.url)
     const next = { ...photosRef.current }
     if (file) next[kind] = { file, url: URL.createObjectURL(file) }
     else delete next[kind]
@@ -67,7 +90,7 @@ export function ListingForm({
       for (const { kind } of SLOTS) {
         const slot = photosRef.current[kind]
         if (!slot) continue
-        if (!slot.path) {
+        if (!slot.path && slot.file) {
           const blob = await resizeImage(slot.file)
           const path = `${userId}/${listingId}/${kind}-${crypto.randomUUID()}.jpg`
           const { error } = await supabase.storage.from(BAZAR_BUCKET).upload(path, blob, { contentType: 'image/jpeg', upsert: false })
@@ -79,13 +102,13 @@ export function ListingForm({
     } catch (e) {
       return { error: e instanceof Error ? e.message : 'Fotku se nepodařilo nahrát.', values: keep() }
     }
-    return createListing(prev, formData)
+    return edit ? updateListing(prev, formData) : createListing(prev, formData)
   }
 
   const [state, action] = useActionState(submit, undefined)
   const v = state?.values
-  const val = (k: keyof ListingPrefill) => {
-    const x = prefill?.[k]
+  const val = (k: keyof ListingPrefill | keyof ListingEdit) => {
+    const x = edit ? (edit as Record<string, unknown>)[k] : (prefill as Record<string, unknown> | undefined)?.[k]
     return x == null ? undefined : String(x).replace('.', k === 'size_eu' ? ',' : '.')
   }
 
@@ -170,14 +193,14 @@ export function ListingForm({
           <input id="inner_width_mm" name="inner_width_mm" type="number" inputMode="numeric" min={30} max={120} defaultValue={v?.inner_width_mm ?? val('inner_width_mm')} className={inputClass} />
         </Field>
         <Field label="Šířka boty" htmlFor="width">
-          <select id="width" name="width" defaultValue={v?.width ?? 'normalni'} className={inputClass}>
+          <select id="width" name="width" defaultValue={v?.width ?? edit?.width ?? 'normalni'} className={inputClass}>
             {Object.entries(WIDTH_LABEL).map(([k, t]) => (
               <option key={k} value={k}>{t}</option>
             ))}
           </select>
         </Field>
         <Field label="Druh" htmlFor="category">
-          <select id="category" name="category" defaultValue={v?.category ?? prefill?.category ?? ''} className={inputClass}>
+          <select id="category" name="category" defaultValue={v?.category ?? edit?.category ?? prefill?.category ?? ''} className={inputClass}>
             <option value="">Vyberte…</option>
             {categories.map((c) => (
               <option key={c.code} value={c.code}>{c.name}</option>
@@ -185,8 +208,8 @@ export function ListingForm({
           </select>
         </Field>
         <Field label="Stav" htmlFor="condition">
-          <select id="condition" name="condition" defaultValue={v?.condition ?? 'lehce_nosene'} className={inputClass}>
-            {Object.entries(CONDITION_LABEL).filter(([k]) => k !== 'hodne_nosene' || v?.condition === 'hodne_nosene').map(([k, t]) => (
+          <select id="condition" name="condition" defaultValue={v?.condition ?? edit?.condition ?? 'lehce_nosene'} className={inputClass}>
+            {Object.entries(CONDITION_LABEL).filter(([k]) => k !== 'hodne_nosene' || (v?.condition ?? edit?.condition) === 'hodne_nosene').map(([k, t]) => (
               <option key={k} value={k}>{t}</option>
             ))}
           </select>
@@ -194,14 +217,14 @@ export function ListingForm({
       </div>
 
       <Field label="Cena (Kč)" htmlFor="price_czk">
-        <input id="price_czk" name="price_czk" type="number" inputMode="numeric" min={1} max={20000} step={1} defaultValue={v?.price_czk} placeholder="590" className={inputClass} />
+        <input id="price_czk" name="price_czk" type="number" inputMode="numeric" min={1} max={20000} step={1} defaultValue={v?.price_czk ?? edit?.price_czk} placeholder="590" className={inputClass} />
       </Field>
       <Field label="Popis" htmlFor="description" hint="Jak dlouho se nosily, vady, jestli jsou vyprané…">
-        <textarea id="description" name="description" rows={4} maxLength={2000} defaultValue={v?.description} className={cx(inputClass, 'h-auto py-3')} />
+        <textarea id="description" name="description" rows={4} maxLength={2000} defaultValue={v?.description ?? edit?.description ?? undefined} className={cx(inputClass, 'h-auto py-3')} />
       </Field>
 
       <FormMessage error={state?.error} />
-      <SubmitButton pendingText="Nahrávám fotky a zveřejňuji…">Zveřejnit inzerát</SubmitButton>
+      <SubmitButton pendingText={edit ? 'Ukládám…' : 'Nahrávám fotky a zveřejňuji…'}>{edit ? 'Uložit změny' : 'Zveřejnit inzerát'}</SubmitButton>
     </form>
   )
 }

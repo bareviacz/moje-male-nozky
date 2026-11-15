@@ -3,13 +3,16 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import {
+  BAZAR_BUCKET,
   isCondition,
   isOrderStatus,
   isPhotoKind,
   isWidth,
   normalizeAccount,
+  type BazarCondition,
   type BazarListingStatus,
   type BazarPhotoKind,
+  type BazarWidth,
 } from '@/lib/bazar'
 import { dbErrorCs, fail, int, isUuid, num, str, type FormState } from '@/lib/forms'
 import { createClient } from '@/lib/supabase/server'
@@ -69,7 +72,23 @@ const PHOTO_PATH_RE = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[a-z]+-[0-9a-f-]{36}\.jpg$
  * Uloží nový inzerát. Fotky už jsou nahrané v prohlížeči (bazar-photos),
  * sem přijdou jen jejich cesty jako „druh:cesta“.
  */
-export async function createListing(_: FormState, formData: FormData): Promise<FormState> {
+type ListingInput = {
+  listingId: string
+  brand: string
+  model: string | null
+  sizeEu: number
+  innerLength: number
+  innerWidth: number | null
+  width: string
+  category: string
+  condition: string
+  price: number
+  description: string | null
+  photos: { kind: string; path: string }[]
+}
+
+/** Společná kontrola formuláře pro nový i upravovaný inzerát. */
+function parseListing(formData: FormData): ListingInput | string {
   const listingId = str(formData, 'listing_id')
   const brand = str(formData, 'brand')
   const model = str(formData, 'model') || null
@@ -81,7 +100,6 @@ export async function createListing(_: FormState, formData: FormData): Promise<F
   const condition = str(formData, 'condition')
   const price = int(formData, 'price_czk')
   const description = str(formData, 'description') || null
-  const sourceShoe = str(formData, 'source_shoe_id') || null
   const photos = formData
     .getAll('photo')
     .map(String)
@@ -90,46 +108,66 @@ export async function createListing(_: FormState, formData: FormData): Promise<F
       return { kind: v.slice(0, i), path: v.slice(i + 1) }
     })
 
-  if (!isUuid(listingId)) return fail(formData, dbErrorCs())
-  if (!brand || brand.length > 40) return fail(formData, 'Vyplňte značku.')
-  if (model && model.length > 60) return fail(formData, 'Model může mít nejvýš 60 znaků.')
-  if (sizeEu === null || Number.isNaN(sizeEu) || sizeEu < 15 || sizeEu > 42)
-    return fail(formData, 'EU velikost musí být mezi 15 a 42.')
+  if (!isUuid(listingId)) return dbErrorCs()
+  if (!brand || brand.length > 40) return 'Vyplňte značku.'
+  if (model && model.length > 60) return 'Model může mít nejvýš 60 znaků.'
+  if (sizeEu === null || Number.isNaN(sizeEu) || sizeEu < 15 || sizeEu > 42) return 'EU velikost musí být mezi 15 a 42.'
   if (innerLength === null || Number.isNaN(innerLength) || innerLength < 90 || innerLength > 300)
-    return fail(formData, 'Vnitřní délka musí být mezi 90 a 300 mm.')
+    return 'Vnitřní délka musí být mezi 90 a 300 mm.'
   if (innerWidth !== null && (Number.isNaN(innerWidth) || innerWidth < 30 || innerWidth > 120))
-    return fail(formData, 'Vnitřní šířka musí být mezi 30 a 120 mm.')
-  if (!isWidth(width)) return fail(formData, 'Vyberte šířku.')
-  if (!/^[a-z_]{2,40}$/.test(category)) return fail(formData, 'Vyberte druh obuvi.')
-  if (!isCondition(condition)) return fail(formData, 'Vyberte stav.')
-  if (price === null || Number.isNaN(price) || price < 1 || price > 20000)
-    return fail(formData, 'Cena musí být mezi 1 a 20 000 Kč.')
-  if (description && description.length > 2000) return fail(formData, 'Popis může mít nejvýš 2000 znaků.')
+    return 'Vnitřní šířka musí být mezi 30 a 120 mm.'
+  if (!isWidth(width)) return 'Vyberte šířku.'
+  if (!/^[a-z_]{2,40}$/.test(category)) return 'Vyberte druh obuvi.'
+  if (!isCondition(condition)) return 'Vyberte stav.'
+  if (price === null || Number.isNaN(price) || price < 1 || price > 20000) return 'Cena musí být mezi 1 a 20 000 Kč.'
+  if (description && description.length > 2000) return 'Popis může mít nejvýš 2000 znaků.'
+  if (!photos.some((p) => p.kind === 'celek')) return 'Přidejte fotku celé boty z boku.'
+  if (!photos.some((p) => p.kind === 'podrazka')) return 'Přidejte fotku podrážky.'
+  return {
+    listingId, brand, model, sizeEu: Math.round(sizeEu * 2) / 2, innerLength, innerWidth, width, category,
+    condition, price, description, photos,
+  }
+}
+
+function listingColumns(d: ListingInput) {
+  return {
+    title: [d.brand, d.model].filter(Boolean).join(' ').slice(0, 90).padEnd(3, ' '),
+    brand: d.brand,
+    model: d.model,
+    size_eu: d.sizeEu,
+    inner_length_mm: d.innerLength,
+    inner_width_mm: d.innerWidth,
+    width: d.width as BazarWidth,
+    category: d.category,
+    condition: d.condition as BazarCondition,
+    price_czk: d.price,
+    description: d.description,
+  }
+}
+
+function badPhotos(d: ListingInput, userId: string) {
+  const prefix = `${userId}/${d.listingId}/`
+  return d.photos.some((p) => !isPhotoKind(p.kind) || !p.path.startsWith(prefix) || !PHOTO_PATH_RE.test(p.path))
+}
+
+/**
+ * Uloží nový inzerát. Fotky už jsou nahrané v prohlížeči (bazar-photos),
+ * sem přijdou jen jejich cesty jako „druh:cesta“.
+ */
+export async function createListing(_: FormState, formData: FormData): Promise<FormState> {
+  const d = parseListing(formData)
+  if (typeof d === 'string') return fail(formData, d)
+  const sourceShoe = str(formData, 'source_shoe_id') || null
   if (sourceShoe && !isUuid(sourceShoe)) return fail(formData, dbErrorCs())
-  if (!photos.some((p) => p.kind === 'celek')) return fail(formData, 'Přidejte fotku celé boty z boku.')
-  if (!photos.some((p) => p.kind === 'podrazka')) return fail(formData, 'Přidejte fotku podrážky.')
 
   const { supabase, user } = await requireBazarUser('/bazar/prodat')
-  const prefix = `${user.id}/${listingId}/`
-  if (photos.some((p) => !isPhotoKind(p.kind) || !p.path.startsWith(prefix) || !PHOTO_PATH_RE.test(p.path)))
-    return fail(formData, 'Fotky se nepodařilo uložit. Zkuste je přidat znovu.')
+  if (badPhotos(d, user.id)) return fail(formData, 'Fotky se nepodařilo uložit. Zkuste je přidat znovu.')
 
-  const title = [brand, model].filter(Boolean).join(' ').slice(0, 90).padEnd(3, ' ')
   const { error } = await supabase.from('bazar_listings').insert({
-    id: listingId,
+    id: d.listingId,
     seller_id: user.id,
     source_shoe_id: sourceShoe,
-    title,
-    brand,
-    model,
-    size_eu: Math.round(sizeEu * 2) / 2,
-    inner_length_mm: innerLength,
-    inner_width_mm: innerWidth,
-    width,
-    category,
-    condition,
-    price_czk: price,
-    description,
+    ...listingColumns(d),
     status: 'koncept',
   })
   if (error) {
@@ -139,8 +177,8 @@ export async function createListing(_: FormState, formData: FormData): Promise<F
   }
 
   const { error: photoErr } = await supabase.from('bazar_listing_photos').insert(
-    photos.map((p, position) => ({
-      listing_id: listingId,
+    d.photos.map((p, position) => ({
+      listing_id: d.listingId,
       storage_path: p.path,
       kind: p.kind as BazarPhotoKind,
       position,
@@ -148,11 +186,80 @@ export async function createListing(_: FormState, formData: FormData): Promise<F
   )
   if (photoErr) return fail(formData, dbErrorCs())
 
-  const { error: pubErr } = await supabase.from('bazar_listings').update({ status: 'aktivni' }).eq('id', listingId)
+  const { error: pubErr } = await supabase.from('bazar_listings').update({ status: 'aktivni' }).eq('id', d.listingId)
   if (pubErr) return fail(formData, 'Inzerát je uložený jako koncept, ale nepodařilo se ho zveřejnit.')
 
   revalidatePath('/bazar', 'layout')
-  redirect(`/bazar/${listingId}?nove=1`)
+  redirect(`/bazar/${d.listingId}?nove=1`)
+}
+
+/** Úprava vlastního inzerátu (jen dokud není rezervovaný nebo prodaný). */
+export async function updateListing(_: FormState, formData: FormData): Promise<FormState> {
+  const d = parseListing(formData)
+  if (typeof d === 'string') return fail(formData, d)
+
+  const { supabase, user } = await requireBazarUser(`/bazar/${d.listingId}/upravit`)
+  if (badPhotos(d, user.id)) return fail(formData, 'Fotky se nepodařilo uložit. Zkuste je přidat znovu.')
+
+  const { data: listing } = await supabase
+    .from('bazar_listings')
+    .select('status, seller_id, bazar_listing_photos(storage_path)')
+    .eq('id', d.listingId)
+    .maybeSingle()
+  if (!listing || listing.seller_id !== user.id) return fail(formData, 'Inzerát se nenašel.')
+  if (!['aktivni', 'skryto', 'koncept'].includes(listing.status))
+    return fail(formData, 'Rezervovaný nebo prodaný inzerát už upravit nejde.')
+
+  const { error } = await supabase.from('bazar_listings').update(listingColumns(d)).eq('id', d.listingId)
+  if (error) return fail(formData, dbErrorCs())
+
+  // Fotky: smazat staré řádky a vložit aktuální sadu v novém pořadí
+  const { error: delErr } = await supabase.from('bazar_listing_photos').delete().eq('listing_id', d.listingId)
+  if (delErr) return fail(formData, dbErrorCs())
+  const { error: photoErr } = await supabase.from('bazar_listing_photos').insert(
+    d.photos.map((p, position) => ({
+      listing_id: d.listingId,
+      storage_path: p.path,
+      kind: p.kind as BazarPhotoKind,
+      position,
+    })),
+  )
+  if (photoErr) return fail(formData, dbErrorCs())
+
+  const keep = new Set(d.photos.map((p) => p.path))
+  const removed = (listing.bazar_listing_photos ?? []).map((p) => p.storage_path).filter((p) => !keep.has(p))
+  if (removed.length) await supabase.storage.from(BAZAR_BUCKET).remove(removed)
+
+  revalidatePath('/bazar', 'layout')
+  redirect(`/bazar/${d.listingId}?upraveno=1`)
+}
+
+/** Smazání vlastního inzerátu. Pokud už k němu byla objednávka, jen se stáhne z nabídky. */
+export async function deleteListing(_: FormState, formData: FormData): Promise<FormState> {
+  const id = str(formData, 'listing_id')
+  if (!isUuid(id)) return { error: dbErrorCs() }
+  const { supabase, user } = await requireBazarUser('/bazar/moje')
+
+  const { data: listing } = await supabase
+    .from('bazar_listings')
+    .select('status, seller_id, bazar_listing_photos(storage_path)')
+    .eq('id', id)
+    .maybeSingle()
+  if (!listing || listing.seller_id !== user.id) return { error: 'Inzerát se nenašel.' }
+  if (!['aktivni', 'skryto', 'koncept'].includes(listing.status))
+    return { error: 'Rezervovaný nebo prodaný inzerát smazat nejde.' }
+
+  if (listing.status === 'aktivni') await supabase.from('bazar_listings').update({ status: 'skryto' }).eq('id', id)
+  const { error } = await supabase.from('bazar_listings').delete().eq('id', id)
+  if (error) {
+    revalidatePath('/bazar', 'layout')
+    return { error: 'K inzerátu už existuje objednávka, proto jsme ho jen stáhli z nabídky.' }
+  }
+  const paths = (listing.bazar_listing_photos ?? []).map((p) => p.storage_path)
+  if (paths.length) await supabase.storage.from(BAZAR_BUCKET).remove(paths)
+
+  revalidatePath('/bazar', 'layout')
+  redirect('/bazar/moje?smazano=1')
 }
 
 /** Skrýt / znovu zveřejnit vlastní inzerát. */

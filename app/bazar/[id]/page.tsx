@@ -54,9 +54,9 @@ export default async function ListingPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ nove?: string }>
+  searchParams: Promise<{ nove?: string; upraveno?: string }>
 }) {
-  const [{ id }, { nove }] = await Promise.all([params, searchParams])
+  const [{ id }, { nove, upraveno }] = await Promise.all([params, searchParams])
   const res = await load(id)
   if (!res) notFound()
   const { supabase, l } = res
@@ -91,6 +91,7 @@ export default async function ListingPage({
   return (
     <div className="flex flex-col gap-4">
       <Link href="/bazar" className="self-start text-sm font-bold text-forest">← Zpět na nabídku</Link>
+      {upraveno === '1' && <FormMessage success="Změny jsou uložené." />}
       {nove === '1' && <FormMessage success="Inzerát je zveřejněný. Když se boty prodají, ozveme se vám e-mailem i tady v bazaru." />}
 
       <div className="grid gap-5 md:grid-cols-[1.1fr_1fr] md:items-start md:gap-7">
@@ -149,6 +150,11 @@ export default async function ListingPage({
             {isOwn ? (
               <div className="flex flex-col gap-2">
                 <p className="text-sm text-muted">Váš inzerát · {LISTING_STATUS_LABEL[l.status]}</p>
+                {(l.status === 'aktivni' || l.status === 'skryto') && (
+                  <Link href={`/bazar/${l.id}/upravit`} className={btn.primary}>
+                    Upravit nebo smazat
+                  </Link>
+                )}
                 {(l.status === 'aktivni' || l.status === 'skryto') && (
                   <form action={setListingStatus}>
                     <input type="hidden" name="listing_id" value={l.id} />

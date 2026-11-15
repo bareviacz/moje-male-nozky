@@ -30,7 +30,8 @@ function Thumb({ path }: { path?: string }) {
   )
 }
 
-export default async function MinePage() {
+export default async function MinePage({ searchParams }: { searchParams: Promise<{ smazano?: string }> }) {
+  const { smazano } = await searchParams
   const supabase = await createClient()
   const {
     data: { user },
@@ -119,6 +120,10 @@ export default async function MinePage() {
         {me?.is_admin && <Link href="/bazar/admin" className={btn.ghost}>Správa</Link>}
       </div>
 
+      {smazano && (
+        <p role="status" className="rounded-2xl bg-forest-soft px-4 py-3 text-[15px] font-semibold text-forest">Inzerát je smazaný.</p>
+      )}
+
       {!!unread && (
         <a href="#zpravy" className="rounded-2xl bg-sky-soft px-4 py-3 text-sm font-semibold text-sky-ink">
           Máte {unread} {unread === 1 ? 'novou zprávu' : unread < 5 ? 'nové zprávy' : 'nových zpráv'} ↓
@@ -129,16 +134,23 @@ export default async function MinePage() {
         <h2 id="prodavam" className="font-display text-xl font-bold">Prodávám</h2>
         {(sales ?? []).map((o) => orderRow(o, TODO_SELLER.includes(o.status), `pro ${o.buyer_name}`))}
         {(mine ?? []).map((l) => (
-          <Link key={l.id} href={`/bazar/${l.id}`} className="flex items-center gap-3.5 rounded-[20px] border border-line bg-white p-3.5">
-            <Thumb path={coverPhoto(l.bazar_listing_photos ?? [])?.storage_path} />
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <span className="truncate font-bold">{listingTitle(l)}</span>
-              <span className="text-[13px] text-muted tabular-nums">EU {formatEu(l.size_eu)} · {formatCzk(l.price_czk)}</span>
-              <span className={cx('self-start rounded-[10px] px-2 py-0.5 text-xs font-bold', l.status === 'aktivni' ? 'bg-forest-soft text-forest' : 'bg-ground ring-1 ring-line')}>
-                {LISTING_STATUS_LABEL[l.status]}
-              </span>
-            </div>
-          </Link>
+          <div key={l.id} className="flex items-center gap-3.5 rounded-[20px] border border-line bg-white p-3.5">
+            <Link href={`/bazar/${l.id}`} className="flex min-w-0 flex-1 items-center gap-3.5">
+              <Thumb path={coverPhoto(l.bazar_listing_photos ?? [])?.storage_path} />
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="truncate font-bold">{listingTitle(l)}</span>
+                <span className="text-[13px] text-muted tabular-nums">EU {formatEu(l.size_eu)} · {formatCzk(l.price_czk)}</span>
+                <span className={cx('self-start rounded-[10px] px-2 py-0.5 text-xs font-bold', l.status === 'aktivni' ? 'bg-forest-soft text-forest' : 'bg-ground ring-1 ring-line')}>
+                  {LISTING_STATUS_LABEL[l.status]}
+                </span>
+              </div>
+            </Link>
+            {(l.status === 'aktivni' || l.status === 'skryto') && (
+              <Link href={`/bazar/${l.id}/upravit`} className="shrink-0 rounded-full px-3.5 py-2 text-sm font-bold text-forest ring-1 ring-forest/30">
+                Upravit
+              </Link>
+            )}
+          </div>
         ))}
         {!sales?.length && !mine?.length && (
           <EmptyState title="Zatím nic neprodáváte" text="Boty, ze kterých dítě vyrostlo, vystavíte za pár minut." action={<Link href="/bazar/prodat" className={btn.small}>Prodat boty</Link>} />
