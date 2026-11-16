@@ -14,6 +14,9 @@ const ITEMS = [
   { href: '/profil', label: 'Profil', Icon: ProfileIcon },
 ]
 
+/** Přepínač do bazárku ve spodní liště (mobil). */
+const BAZAR_ITEM = { href: '/bazar', label: 'Bazárek', Icon: ShoeIcon, primary: false }
+
 function useIsActive() {
   const pathname = usePathname()
   return (href: string) =>
@@ -30,8 +33,19 @@ export function BottomNav() {
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <ul className="mx-auto flex h-[76px] max-w-xl items-start px-2 pt-2">
-        {ITEMS.map(({ href, label, Icon, primary }) => {
+        {[...ITEMS.slice(0, 4), BAZAR_ITEM, ITEMS[4]].map(({ href, label, Icon, primary }) => {
           const active = isActive(href)
+          if (href === '/bazar')
+            return (
+              <li key={href} className="flex flex-1 justify-center">
+                <Link href={href} className="flex min-h-[52px] w-full flex-col items-center gap-1 pt-0.5 text-xs font-bold text-sun-deep">
+                  <span className="flex h-7 w-11 items-center justify-center rounded-full bg-sun-soft">
+                    <Icon className="size-[22px]" strokeWidth={1.9} />
+                  </span>
+                  {label}
+                </Link>
+              </li>
+            )
           if (primary)
             return (
               <li key={href} className="flex flex-1 justify-center">
