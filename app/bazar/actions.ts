@@ -110,7 +110,8 @@ function parseListing(formData: FormData): ListingInput | string {
 
   if (!isUuid(listingId)) return dbErrorCs()
   if (!brand || brand.length > 40) return 'Vyplňte značku.'
-  if (model && model.length > 60) return 'Model může mít nejvýš 60 znaků.'
+  if (!model || model.length < 3) return 'Vyplňte název bot, třeba „Zimní sněhule s liškou“ nebo model.'
+  if (model.length > 60) return 'Název může mít nejvýš 60 znaků.'
   if (sizeEu === null || Number.isNaN(sizeEu) || sizeEu < 15 || sizeEu > 42) return 'EU velikost musí být mezi 15 a 42.'
   if (innerLength === null || Number.isNaN(innerLength) || innerLength < 90 || innerLength > 300)
     return 'Vnitřní délka musí být mezi 90 a 300 mm.'

@@ -174,8 +174,8 @@ export function ListingForm({
             ))}
           </datalist>
         </Field>
-        <Field label="Model (nepovinné)" htmlFor="model">
-          <input id="model" name="model" type="text" maxLength={60} defaultValue={v?.model ?? val('model')} className={inputClass} />
+        <Field label="Název" htmlFor="model">
+          <input id="model" name="model" type="text" required minLength={3} maxLength={60} defaultValue={v?.model ?? val('model')} placeholder="např. Zimní sněhule s liškou" className={inputClass} />
         </Field>
         <Field label="EU velikost" htmlFor="size_eu">
           <input id="size_eu" name="size_eu" type="text" inputMode="decimal" defaultValue={v?.size_eu ?? val('size_eu')} placeholder="25" className={inputClass} />
