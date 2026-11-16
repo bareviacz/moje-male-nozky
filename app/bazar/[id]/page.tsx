@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { EshopTip } from '@/components/bazar/EshopTip'
 import { notFound } from 'next/navigation'
 import { setListingStatus } from '@/app/bazar/actions'
 import { coverPhoto } from '@/components/bazar/ListingCard'
@@ -207,6 +208,8 @@ export default async function ListingPage({
               {user && <ReportForm listingId={l.id} />}
             </Card>
           )}
+
+          {!isOwn && <EshopTip category={l.category} place="bazar_detail" />}
         </div>
       </div>
     </div>

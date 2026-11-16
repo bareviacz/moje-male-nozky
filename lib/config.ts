@@ -20,3 +20,17 @@ export function utm(url: string, campaign: string, source: 'malenozky' | 'bazar'
   u.searchParams.set('utm_campaign', campaign)
   return u.toString()
 }
+
+/**
+ * Kam posílat z bazárku „nesehnali jste?“ – podle druhu bot.
+ * Až bude v e-shopu kategorie Akce/Výprodej, stačí změnit ESHOP_TIP_DEFAULT.
+ */
+export const ESHOP_TIP_DEFAULT = 'https://www.barevia.cz/barefoot-obuv/'
+export const ESHOP_TIP_BY_CATEGORY: Record<string, string> = {
+  winter: 'https://www.barevia.cz/zimni-barefoot-boty/',
+  all_season_spring: 'https://www.barevia.cz/celorocni-barefoot-boty/',
+  all_season_autumn: 'https://www.barevia.cz/celorocni-barefoot-boty/',
+  sneakers: 'https://www.barevia.cz/barefoot-tenisky/',
+  summer: 'https://www.barevia.cz/detske-sandaly/',
+  slippers: 'https://www.barevia.cz/detske-barefoot-backory-a-papuce/',
+}

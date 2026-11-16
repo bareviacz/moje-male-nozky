@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { EshopTip } from '@/components/bazar/EshopTip'
 import { FiltersToggle } from '@/components/bazar/FiltersToggle'
 import { ListingCard, type ListingCardData } from '@/components/bazar/ListingCard'
 import { btn, cx, EmptyState, inputClass } from '@/components/ui'
@@ -209,6 +210,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
             {listings.map((l) => (
               <ListingCard key={l.id} l={l} footMm={foot} />
             ))}
+            <EshopTip category={sp.druh} place="bazar_nabidka" />
           </div>
         ) : (
           !error && (
@@ -219,6 +221,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
             />
           )
         )}
+        {listings.length === 0 && !error && <EshopTip category={sp.druh} place="bazar_prazdno" />}
       </section>
     </div>
     </>
