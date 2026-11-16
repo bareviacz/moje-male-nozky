@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { BazarBanner } from '@/components/BazarBanner'
 import { Footprints } from '@/components/Footprints'
 import { ChartIcon, RulerIcon, ShoeIcon } from '@/components/icons'
 import { AppNamePill, Logo } from '@/components/Logo'
@@ -64,9 +65,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               Už mám účet – přihlásit se
             </Link>
           </div>
-          <Link href="/bazar" className="text-center text-[15px] font-bold text-forest underline">
-            Bazárek: barefoot botičky od rodičů
-          </Link>
+          <BazarBanner />
         </div>
       </div>
 

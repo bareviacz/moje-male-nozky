@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { BazarBanner } from '@/components/BazarBanner'
 import { ChildAvatar } from '@/components/ChildAvatar'
 import { CalendarIcon, RulerIcon, ShoeIcon } from '@/components/icons'
 import { btn, EmptyState, Page } from '@/components/ui'
@@ -173,19 +174,7 @@ export default async function OverviewPage() {
       )}
 
       {/* Bazárek */}
-      <Link
-        href="/bazar"
-        className="flex items-center gap-3.5 rounded-[20px] bg-sun-soft p-[18px] text-sun-deep transition hover:bg-[#FBE7BE]"
-      >
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-[14px] bg-white text-sun-deep">
-          <ShoeIcon className="size-[22px]" />
-        </span>
-        <span className="flex flex-1 flex-col gap-0.5">
-          <span className="text-base font-bold">Bazárek obnošených bot</span>
-          <span className="text-[13px]">Kupte boty, které padnou, nebo prodejte ty, ze kterých děti vyrostly.</span>
-        </span>
-        <span aria-hidden="true" className="font-bold">→</span>
-      </Link>
+      <BazarBanner />
 
       {/* Připomínka měření */}
       {toMeasure.slice(0, 1).map((c) => (
