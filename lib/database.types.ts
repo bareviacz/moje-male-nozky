@@ -703,7 +703,7 @@ export type Database = {
       }
     }
     Enums: {
-      bazar_condition: "jako_nove" | "lehce_nosene" | "nosene" | "hodne_nosene"
+      bazar_condition: "nove" | "jako_nove" | "lehce_nosene" | "nosene" | "hodne_nosene"
       bazar_gender: "unisex" | "holka" | "kluk"
       bazar_listing_status: "koncept" | "aktivni" | "rezervovano" | "prodano" | "skryto"
       bazar_order_status: "ceka_na_postovne" | "postovne_zaplaceno" | "k_odeslani" | "na_ceste" | "doruceno" | "dokonceno" | "zruseno"

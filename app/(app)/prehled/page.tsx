@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ChildAvatar } from '@/components/ChildAvatar'
 import { CalendarIcon, RulerIcon, ShoeIcon } from '@/components/icons'
 import { btn, EmptyState, Page } from '@/components/ui'
-import { ESHOP_URL } from '@/lib/config'
+import { ESHOP_URL, utm } from '@/lib/config'
 import { getChildren, getLastMeasurements, getShoeCategories, REMEASURE_AFTER_DAYS } from '@/lib/data'
 import { daysBetween, formatAge, formatAgo, formatDayMonth, greeting } from '@/lib/format'
 import { requireUser } from '@/lib/supabase/server'
@@ -80,7 +80,7 @@ export default async function OverviewPage() {
                   ` Na nové doporučujeme vnitřní délku ${s.foot_length_mm + 8}–${s.foot_length_mm + 12} mm.`}
               </span>
               <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
-                <a href={cat?.eshop_url ?? ESHOP_URL} target="_blank" rel="noopener" className="text-sm font-bold text-sun-ink underline">
+                <a href={utm(cat?.eshop_url ?? ESHOP_URL, 'prehled_male_boty')} target="_blank" rel="noopener" className="text-sm font-bold text-sun-ink underline">
                   Vybrat větší na barevia.cz
                 </a>
                 <Link href={`/boty?dite=${child.id}`} className="text-sm font-bold text-sun-ink">
@@ -123,7 +123,7 @@ export default async function OverviewPage() {
                   </li>
                 ))}
               </ul>
-              <a href={first.eshop_url ?? ESHOP_URL} target="_blank" rel="noopener" className="mt-1 text-sm font-bold text-forest underline">
+              <a href={utm(first.eshop_url ?? ESHOP_URL, 'prehled_doporuceni')} target="_blank" rel="noopener" className="mt-1 text-sm font-bold text-forest underline">
                 Prohlédnout {first.category_name?.toLowerCase()} na barevia.cz
               </a>
             </div>

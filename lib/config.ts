@@ -7,3 +7,16 @@ export const ESHOP_URL = 'https://www.barevia.cz/'
 export const PRIVACY_URL = 'https://www.barevia.cz/podminky-ochrany-osobnich-udaju/'
 
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+
+/**
+ * Přidá k odkazu na e-shop UTM značky, aby bylo v Google Analytics vidět, odkud lidé přišli.
+ * source: malenozky | bazar, campaign: místo v aplikaci.
+ */
+export function utm(url: string, campaign: string, source: 'malenozky' | 'bazar' = 'malenozky') {
+  if (!/^https:\/\/(www\.)?barevia\.cz/.test(url)) return url
+  const u = new URL(url)
+  u.searchParams.set('utm_source', source)
+  u.searchParams.set('utm_medium', 'app')
+  u.searchParams.set('utm_campaign', campaign)
+  return u.toString()
+}

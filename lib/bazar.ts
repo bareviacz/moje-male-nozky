@@ -21,6 +21,7 @@ export const WIDTH_LABEL: Record<BazarWidth, string> = {
 }
 
 export const CONDITION_LABEL: Record<BazarCondition, string> = {
+  nove: 'Nové',
   jako_nove: 'Jako nové',
   lehce_nosene: 'Lehce nošené',
   nosene: 'Nošené',
@@ -29,6 +30,7 @@ export const CONDITION_LABEL: Record<BazarCondition, string> = {
 
 /** Barevný proužek stavu (Tailwind třídy). */
 export const CONDITION_STRIPE: Record<BazarCondition, string> = {
+  nove: 'border-l-sky',
   jako_nove: 'border-l-forest',
   lehce_nosene: 'border-l-[#6AA84F]',
   nosene: 'border-l-sun',

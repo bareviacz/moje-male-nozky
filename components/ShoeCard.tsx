@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { restoreShoe, retireShoe } from '@/app/(app)/actions'
-import { ESHOP_URL } from '@/lib/config'
+import { ESHOP_URL, utm } from '@/lib/config'
 import { asFitStatus, FIT_BADGE, FIT_BAR, FIT_LABEL, reservePercent, SOON_SMALL_BELOW_MM } from '@/lib/fit'
 import { formatDate } from '@/lib/format'
 import { SubmitButton } from './SubmitButton'
@@ -120,7 +120,7 @@ export function ShoeCard({ shoe }: { shoe: ShoeView }) {
 
       {alert && (
         <a
-          href={shoe.eshopUrl ?? ESHOP_URL}
+          href={utm(shoe.eshopUrl ?? ESHOP_URL, 'evidence_bot')}
           target="_blank"
           rel="noopener"
           className="flex h-[46px] items-center justify-center rounded-[14px] bg-sun-soft text-sm font-bold text-sun-deep hover:bg-[#FBE7BE]"

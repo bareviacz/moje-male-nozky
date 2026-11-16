@@ -1,5 +1,6 @@
 'use client'
 
+import { utm } from '@/lib/config'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { ChildPicker, type PickerChild } from './ChildPicker'
@@ -183,7 +184,7 @@ export function SizeAdvisor({ items, initialId }: { items: AdvisorChild[]; initi
                   })}
                 </div>
                 {f.widthNote && <p className="text-[13px] text-sun-ink">{f.widthNote}</p>}
-                <a href={p.url} target="_blank" rel="noopener" className="inline-flex h-11 items-center self-start rounded-xl bg-forest px-4 text-sm font-bold text-white hover:bg-forest-dark">
+                <a href={utm(p.url, 'najit_boty')} target="_blank" rel="noopener" className="inline-flex h-11 items-center self-start rounded-xl bg-forest px-4 text-sm font-bold text-white hover:bg-forest-dark">
                   Zobrazit v e-shopu
                 </a>
               </li>
@@ -195,7 +196,7 @@ export function SizeAdvisor({ items, initialId }: { items: AdvisorChild[]; initi
               <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-muted">
                 {result.rest.map(({ p, why }) => (
                   <li key={p.url}>
-                    <a href={p.url} target="_blank" rel="noopener" className="text-forest underline">
+                    <a href={utm(p.url, 'najit_boty')} target="_blank" rel="noopener" className="text-forest underline">
                       {p.name}
                     </a>{' '}
                     ({why})

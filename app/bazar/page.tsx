@@ -20,7 +20,7 @@ type Search = {
   razeni?: string
 }
 
-const CONDITION_ORDER = ['jako_nove', 'lehce_nosene', 'nosene', 'hodne_nosene'] as const
+const CONDITION_ORDER = ['nove', 'jako_nove', 'lehce_nosene', 'nosene', 'hodne_nosene'] as const
 
 export default async function BazarPage({ searchParams }: { searchParams: Promise<Search> }) {
   const sp = await searchParams
@@ -102,6 +102,21 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
   const r = foot ? fitRange(foot) : null
 
   return (
+    <>
+    {!user && (
+      <section className="mb-5 flex flex-col gap-4 rounded-[24px] bg-forest-soft p-5 md:mb-7 md:flex-row md:items-center md:justify-between md:p-7">
+        <div className="flex flex-col gap-1.5">
+          <h2 className="font-display text-2xl leading-tight font-bold md:text-[28px]">Botičky jsou malé? Prodejte je dál.</h2>
+          <p className="text-[15px] leading-relaxed text-muted">
+            Nabídnete je za pár minut, kupující vám zaplatí QR kódem přímo na účet. A tady najdete další, které sednou.
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+          <Link href="/registrace?next=/bazar/prodat" className={btn.primary}>Prodat botičky</Link>
+          <Link href="/registrace?next=/bazar" className={btn.secondary}>Vytvořit účet</Link>
+        </div>
+      </section>
+    )}
     <div className="flex flex-col gap-5 md:grid md:grid-cols-[280px_1fr] md:items-start md:gap-7">
       <form method="get" action="/bazar" className="flex flex-col gap-4 rounded-[20px] border border-line bg-white p-4 md:sticky md:top-24">
         <div className="flex flex-col gap-2 rounded-2xl bg-forest-soft p-3.5">
@@ -206,6 +221,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
         )}
       </section>
     </div>
+    </>
   )
 }
 

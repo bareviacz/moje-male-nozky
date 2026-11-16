@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/database.types'
+import { utm } from '@/lib/config'
 import { NEW_SHOE_MAX_EXTRA_MM, NEW_SHOE_MIN_EXTRA_MM } from '@/lib/fit'
 
 type Pick = {
@@ -80,7 +81,7 @@ export async function CatalogPicks({
         {picks.map((p) => (
           <li key={p.id} className="w-[170px] shrink-0 snap-start md:w-auto">
             <a
-              href={`${p.url}?utm_source=malenozky&utm_medium=app&utm_campaign=zimni_divci`}
+              href={utm(p.url, 'zimni_boty_u_ditete')}
               target="_blank"
               rel="noopener"
               className="flex h-full flex-col overflow-hidden rounded-[20px] border border-line bg-white transition hover:border-field"

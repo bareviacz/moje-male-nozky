@@ -3,6 +3,7 @@ import { Footprints } from '@/components/Footprints'
 import { ChartIcon, RulerIcon, ShoeIcon } from '@/components/icons'
 import { AppNamePill, Logo } from '@/components/Logo'
 import { btn } from '@/components/ui'
+import { ESHOP_URL, utm } from '@/lib/config'
 
 const FEATURES = [
   { text: 'Historie měření pro každé dítě', Icon: RulerIcon, tone: 'bg-sun-soft text-sun-ink' },
@@ -27,6 +28,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <div className="grid flex-1 items-center gap-6 md:grid-cols-2 md:gap-12">
         <div className="relative aspect-[342/236] overflow-hidden rounded-[28px] bg-forest-soft md:order-2">
           <Footprints className="absolute inset-0 size-full" />
+          <span className="absolute top-[6%] left-[5%] rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold tracking-wide text-muted uppercase">Ukázka</span>
           <div className="absolute right-[5%] bottom-[8%] flex flex-col gap-0.5 rounded-2xl bg-white px-3.5 py-2.5">
             <span className="text-xs font-semibold text-muted">Od posledního měření</span>
             <span className="font-display text-[22px] font-bold text-forest">+8 mm</span>
@@ -70,7 +72,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       <p className="text-center text-xs text-muted">
         Od{' '}
-        <a href="https://www.barevia.cz/" className="font-semibold text-forest underline">
+        <a href={utm(ESHOP_URL, 'uvod')} className="font-semibold text-forest underline">
           Barevia.cz
         </a>{' '}
         – barefoot obuv pro děti

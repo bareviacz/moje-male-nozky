@@ -8,7 +8,10 @@ export const metadata: Metadata = {
     template: '%s · Bazárek Barevia',
   },
   description:
-    'Kupujte a prodávejte obnošené dětské barefoot boty. Hledejte podle vnitřní délky stélky, posílejte přes Z-BOX bez tisku štítku.',
+    'Kupujte a prodávejte bazarové dětské barefoot boty. Hledejte podle vnitřní délky stélky, plaťte QR kódem přímo prodejci.',
+  manifest: '/bazar/manifest.webmanifest',
+  appleWebApp: { capable: true, title: 'Bazárek', statusBarStyle: 'default' },
+  applicationName: 'Bazárek Barevia',
 }
 
 export default async function BazarLayout({ children }: { children: React.ReactNode }) {
@@ -28,7 +31,7 @@ export default async function BazarLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-dvh">
-      <BazarNav todo={todo} />
+      <BazarNav todo={todo} loggedIn={!!user} />
       <main className="mx-auto w-full max-w-5xl px-5 pt-5 pb-28 md:px-8 md:pt-8 md:pb-12">{children}</main>
     </div>
   )

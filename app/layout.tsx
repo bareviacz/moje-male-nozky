@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Bricolage_Grotesque, Nunito_Sans } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 
 const nunito = Nunito_Sans({
@@ -37,7 +38,14 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="cs" className={`${nunito.variable} ${bricolage.variable}`}>
-      <body className="min-h-dvh bg-ground font-sans text-ink antialiased">{children}</body>
+      <body className="min-h-dvh bg-ground font-sans text-ink antialiased">
+        {children}
+        {/* Vercel Web Analytics – bez cookies, jen počty návštěv a odkud lidé přišli (včetně UTM) */}
+        <Script id="va-init" strategy="afterInteractive">
+          {'window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };'}
+        </Script>
+        <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
+      </body>
     </html>
   )
 }

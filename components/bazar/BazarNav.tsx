@@ -6,7 +6,15 @@ import { HomeIcon, MailIcon, PlusIcon, ProfileIcon, ShoeIcon } from '../icons'
 import { Logo } from '../Logo'
 import { cx } from '../ui'
 
-const ITEMS = [
+type NavItem = { href: string; label: string; Icon: typeof ShoeIcon; primary?: boolean }
+
+const GUEST_ITEMS: NavItem[] = [
+  { href: '/bazar', label: 'Nabídka', Icon: ShoeIcon },
+  { href: '/registrace?next=/bazar/prodat', label: 'Prodat', Icon: PlusIcon, primary: true },
+  { href: '/prihlaseni?next=/bazar', label: 'Přihlásit', Icon: ProfileIcon },
+]
+
+const ITEMS: NavItem[] = [
   { href: '/bazar', label: 'Nabídka', Icon: ShoeIcon },
   { href: '/bazar/moje', label: 'Moje', Icon: MailIcon },
   { href: '/bazar/prodat', label: 'Prodat', Icon: PlusIcon, primary: true },
@@ -31,8 +39,9 @@ export function BazarPill({ className }: { className?: string }) {
 }
 
 /** Horní lišta (tablet, počítač) + spodní lišta (mobil). */
-export function BazarNav({ todo }: { todo: number }) {
+export function BazarNav({ todo, loggedIn }: { todo: number; loggedIn: boolean }) {
   const isActive = useIsActive()
+  const items = loggedIn ? ITEMS : GUEST_ITEMS
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur">
@@ -41,7 +50,27 @@ export function BazarNav({ todo }: { todo: number }) {
             <Logo height={28} />
             <BazarPill />
           </Link>
-          <nav aria-label="Bazar" className="ml-auto hidden items-center gap-1 md:flex">
+          {!loggedIn && (
+            <div className="ml-auto flex items-center gap-1.5">
+              <Link href="/bazar" aria-current={isActive('/bazar') ? 'page' : undefined} className="hidden h-10 items-center rounded-xl px-3 text-[15px] font-semibold text-ink hover:bg-ground md:flex">
+                Nabídka
+              </Link>
+              <Link href="/prihlaseni?next=/bazar" className="hidden h-10 items-center rounded-xl px-3 text-[15px] font-semibold text-ink hover:bg-ground md:flex">
+                Přihlásit
+              </Link>
+              <Link href="/registrace?next=/bazar" className="flex h-10 items-center rounded-xl px-3.5 text-[15px] font-bold text-forest ring-1 ring-forest/30 hover:bg-forest-soft">
+                Vytvořit účet
+              </Link>
+              <Link
+                href="/registrace?next=/bazar/prodat"
+                className="ml-1 hidden h-10 items-center gap-1.5 rounded-xl bg-forest px-4 text-[15px] font-bold text-white hover:bg-forest-dark md:flex"
+              >
+                <PlusIcon className="size-5" strokeWidth={2.2} />
+                Prodat botičky
+              </Link>
+            </div>
+          )}
+          <nav aria-label="Bazar" className={cx('ml-auto hidden items-center gap-1', loggedIn && 'md:flex')}>
             {ITEMS.filter((i) => !i.primary).map(({ href, label }) => (
               <Link
                 key={href}
@@ -75,7 +104,7 @@ export function BazarNav({ todo }: { todo: number }) {
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <ul className="mx-auto flex h-[76px] max-w-xl items-start px-2 pt-2">
-          {ITEMS.map(({ href, label, Icon, primary }) => {
+          {items.map(({ href, label, Icon, primary }) => {
             const active = isActive(href)
             if (primary)
               return (
