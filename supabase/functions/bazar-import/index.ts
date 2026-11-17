@@ -4,6 +4,8 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const CDN = 'https://cdn.myshoptet.com/usr/www.barevia.cz/'
+// Fotky dodané ručně (např. podrážky) – dočasně ve složce public/import aplikace
+const OWN = 'https://malenozky.barevia.cz/import/'
 const KINDS = ['celek', 'podrazka', 'stelka', 'detail']
 
 type Body = {
@@ -43,7 +45,7 @@ Deno.serve(async (req) => {
   if (!ok) return json({ error: 'unauthorized' }, 401)
 
   const photos = body.photos ?? []
-  if (!photos.length || photos.some((p) => !p.url.startsWith(CDN) || !KINDS.includes(p.kind)))
+  if (!photos.length || photos.some((p) => !(p.url.startsWith(CDN) || p.url.startsWith(OWN)) || !KINDS.includes(p.kind)))
     return json({ error: 'photos must be from the Barevia Shoptet CDN with a valid kind' }, 400)
   if (!photos.some((p) => p.kind === 'podrazka')) return json({ error: 'missing podrazka photo' }, 400)
 
