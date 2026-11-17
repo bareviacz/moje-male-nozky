@@ -19,6 +19,7 @@ type Search = {
   max?: string
   prodava?: string
   mesto?: string
+  vel?: string
   razeni?: string
 }
 
@@ -37,7 +38,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
   ] = await Promise.all([
     supabase.auth.getUser(),
     supabase.from('shoe_categories').select('code, name').order('sort_order'),
-    supabase.from('bazar_listings').select('bazar_sellers!inner(city)').in('status', ['aktivni', 'rezervovano']).limit(1000),
+    supabase.from('bazar_listings').select('size_eu, bazar_sellers!inner(city)').in('status', ['aktivni', 'rezervovano']).limit(1000),
   ])
 
   // Děti přihlášeného rodiče a jejich poslední délka nožky (pro filtr „padne“)
@@ -64,6 +65,8 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
     const r = fitRange(foot)
     q = q.gte('inner_length_mm', r.min).lte('inner_length_mm', r.max)
   }
+  const vel = Number(sp.vel)
+  if (sp.vel && Number.isFinite(vel) && vel >= 15 && vel <= 50) q = q.eq('size_eu', vel)
   if (sp.druh && catName.has(sp.druh)) q = q.eq('category', sp.druh)
   if (sp.sirka && isWidth(sp.sirka)) q = q.eq('width', sp.sirka)
   if (sp.stav && isCondition(sp.stav)) q = q.in('condition', CONDITION_ORDER.slice(0, CONDITION_ORDER.indexOf(sp.stav) + 1))
@@ -83,6 +86,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
   const cities = [
     ...new Set((citiesRes.data ?? []).map((r) => r.bazar_sellers?.city?.trim()).filter((c): c is string => !!c)),
   ].sort((a, b) => a.localeCompare(b, 'cs'))
+  const sizes = [...new Set((citiesRes.data ?? []).map((r) => Number(r.size_eu)).filter((n) => Number.isFinite(n)))].sort((a, b) => a - b)
   const brands = [...BAREFOOT_BRANDS]
 
   const listings: ListingCardData[] = (data ?? [])
@@ -163,6 +167,14 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
           </a>
         </div>
 
+        <Select
+          id="vel"
+          label="Velikost (EU)"
+          value={sp.vel}
+          options={sizes.map((n): [string, string] => [String(n), String(n).replace('.', ',')])}
+          all="Všechny velikosti"
+        />
+
         <FiltersToggle defaultOpen={anyFilter}>
             <Select id="druh" label="Druh" value={sp.druh} options={(categories ?? []).map((c): [string, string] => [c.code, c.name])} all="Všechny druhy" />
             <Select id="sirka" label="Šířka" value={sp.sirka} options={Object.entries(WIDTH_LABEL)} all="Vše" />
@@ -199,7 +211,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
         </FiltersToggle>
         {kid && <input type="hidden" name="dite" value={kid.id} />}
         <button type="submit" className={btn.primary}>Hledat</button>
-        {(anyFilter || foot) && (
+        {(anyFilter || foot || sp.vel) && (
           <Link href="/bazar" className="text-center text-sm font-bold text-forest">Zrušit filtry</Link>
         )}
       </form>
@@ -224,8 +236,8 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
         ) : (
           !error && (
             <EmptyState
-              title={foot || anyFilter ? 'Takové boty teď nikdo nenabízí' : 'Bazar se teprve plní'}
-              text={foot || anyFilter ? 'Zkuste povolit jiný druh, šířku nebo stav.' : 'Buďte první, kdo sem dá boty, ze kterých dítě vyrostlo.'}
+              title={foot || anyFilter || sp.vel ? 'Takové boty teď nikdo nenabízí' : 'Bazar se teprve plní'}
+              text={foot || anyFilter || sp.vel ? 'Zkuste jinou velikost, druh, šířku nebo stav.' : 'Buďte první, kdo sem dá boty, ze kterých dítě vyrostlo.'}
               action={<Link href="/bazar/prodat" className={btn.small}>Prodat boty</Link>}
             />
           )
