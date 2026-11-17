@@ -125,7 +125,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
       </section>
     )}
     <div className="flex flex-col gap-5 md:grid md:grid-cols-[280px_1fr] md:items-start md:gap-7">
-      <form method="get" action="/bazar" className="flex flex-col gap-4 rounded-[20px] border border-line bg-white p-4 md:sticky md:top-24">
+      <form method="get" action="/bazar" className="flex flex-col gap-4 rounded-[20px] border border-line bg-white p-4 md:sticky md:top-24 md:max-h-[calc(100dvh-7rem)] md:overflow-y-auto md:overscroll-contain">
         <div className="flex flex-col gap-2 rounded-2xl bg-forest-soft p-3.5">
           <label htmlFor="noha" className="text-sm font-bold">
             Délka nožky (mm)
