@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { BazarBanner } from '@/components/BazarBanner'
 import { ChildAvatar } from '@/components/ChildAvatar'
-import { CalendarIcon, RulerIcon, ShoeIcon } from '@/components/icons'
+import { ShoeAlertCard } from '@/components/ShoeAlertCard'
+import { CalendarIcon, RulerIcon } from '@/components/icons'
 import { btn, EmptyState, Page } from '@/components/ui'
 import { ESHOP_URL, utm } from '@/lib/config'
 import { getChildren, getLastMeasurements, getShoeCategories, REMEASURE_AFTER_DAYS } from '@/lib/data'
@@ -67,29 +68,15 @@ export default async function OverviewPage() {
         const cat = s.category ? categoryByCode.get(s.category) : undefined
         const what = [cat?.name, s.brand].filter(Boolean).join(' ') || 'Boty'
         return (
-          <div key={s.shoe_id} className="flex items-start gap-3.5 rounded-[20px] bg-sun-soft p-4">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white text-sun-ink">
-              <ShoeIcon className="size-[22px]" />
-            </span>
-            <div className="flex flex-1 flex-col gap-1">
-              <span className="text-[15px] font-bold">
-                {what} – {child.name}: {s.fit_status === 'too_small' ? 'už jsou malé' : 'brzy budou malé'}
-              </span>
-              <span className="text-sm leading-snug text-sun-deep">
-                Rezerva {s.length_reserve_mm} mm.
-                {s.foot_length_mm != null &&
-                  ` Na nové doporučujeme vnitřní délku ${s.foot_length_mm + 8}–${s.foot_length_mm + 12} mm.`}
-              </span>
-              <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
-                <a href={utm(cat?.eshop_url ?? ESHOP_URL, 'prehled_male_boty')} target="_blank" rel="noopener" className="text-sm font-bold text-sun-ink underline">
-                  Vybrat větší na barevia.cz
-                </a>
-                <Link href={`/boty?dite=${child.id}`} className="text-sm font-bold text-sun-ink">
-                  Zobrazit boty
-                </Link>
-              </div>
-            </div>
-          </div>
+          <ShoeAlertCard
+            key={s.shoe_id}
+            child={child}
+            what={what}
+            reserveMm={s.length_reserve_mm}
+            footMm={s.foot_length_mm}
+            tooSmall={s.fit_status === 'too_small'}
+            eshopUrl={utm(cat?.eshop_url ?? ESHOP_URL, 'prehled_male_boty')}
+          />
         )
       })}
 
