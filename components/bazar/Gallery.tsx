@@ -35,7 +35,7 @@ export function Gallery({ photos }: { photos: { url: string; kind: BazarPhotoKin
               className={cx('aspect-square overflow-hidden rounded-xl border-2 bg-white', idx === i ? 'border-forest' : 'border-line')}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt="" className="size-full object-cover" />
+              <img src={p.url} alt="" className="size-full object-contain" />
             </button>
           ))}
         </div>

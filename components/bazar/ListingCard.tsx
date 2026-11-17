@@ -42,10 +42,10 @@ export function ListingCard({ l, footMm }: { l: ListingCardData; footMm?: number
       href={`/bazar/${l.id}`}
       className="group flex flex-col overflow-hidden rounded-[20px] border border-line bg-white transition hover:-translate-y-0.5 hover:border-field motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
-      <div className="relative aspect-[4/5] shrink-0 overflow-hidden bg-ground">
+      <div className="relative aspect-[4/5] shrink-0 overflow-hidden bg-white">
         {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumbUrl(cover.storage_path)} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
+          <img src={thumbUrl(cover.storage_path)} alt="" loading="lazy" className="absolute inset-0 size-full object-contain px-2 pt-10 pb-2" />
         ) : (
           <div className="flex size-full items-center justify-center text-field">
             <ShoeIcon className="size-16" strokeWidth={1.2} />
