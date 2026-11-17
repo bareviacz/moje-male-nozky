@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { BazarBanner } from '@/components/BazarBanner'
 import { ChildAvatar } from '@/components/ChildAvatar'
+import { MeritkoCard } from '@/components/MeritkoCard'
 import { SeasonCard } from '@/components/SeasonCard'
 import { ShoeAlertCard } from '@/components/ShoeAlertCard'
 import { RulerIcon } from '@/components/icons'
@@ -143,6 +144,9 @@ export default async function OverviewPage() {
 
       {/* Bazárek */}
       <BazarBanner />
+
+      {/* Měřítko na nožku */}
+      <MeritkoCard />
 
       {/* Připomínka měření */}
       {toMeasure.slice(0, 1).map((c) => (

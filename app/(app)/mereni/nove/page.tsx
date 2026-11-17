@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { CloseIcon } from '@/components/icons'
 import { MeasurementForm } from '@/components/MeasurementForm'
+import { MeritkoCard } from '@/components/MeritkoCard'
 import { btn, EmptyState, IconLink, Page, PageTitle } from '@/components/ui'
 import { getChildren, getLastMeasurements } from '@/lib/data'
-import { MERITKO_PDF_URL } from '@/lib/config'
 import { todayIso } from '@/lib/format'
 import { requireUser } from '@/lib/supabase/server'
 
@@ -47,24 +47,13 @@ export default async function NewMeasurementPage({ searchParams }: { searchParam
   return (
     <Page>
       {header}
+      <MeritkoCard compact />
       <MeasurementForm
         items={children.map(({ id, name, index, photoUrl }) => ({ id, name, index, photoUrl }))}
         defaultChildId={defaultChildId}
         lastLength={lastLength}
         today={todayIso()}
       />
-      <a
-        href={MERITKO_PDF_URL}
-        target="_blank"
-        rel="noopener"
-        className="flex items-center gap-3 rounded-[20px] bg-forest-soft p-4 text-sm font-bold text-forest"
-      >
-        <span aria-hidden="true" className="text-2xl">📏</span>
-        <span>
-          Nemáte metr? Vytiskněte si měřítko na nožku
-          <span className="block font-normal text-muted">PDF na A4 – tiskněte ve 100% velikosti</span>
-        </span>
-      </a>
     </Page>
   )
 }
