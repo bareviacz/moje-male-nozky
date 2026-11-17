@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/database.types'
 import { currentOrigin } from '@/lib/seo'
 
 
@@ -11,7 +12,9 @@ export async function GET() {
 
   if (isBazar) {
     urls.push({ loc: `${origin}/`, priority: '1.0' })
-    const supabase = await createClient()
+    const supabase = createClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+      auth: { persistSession: false },
+    })
     const { data } = await supabase
       .from('bazar_listings')
       .select('id, created_at')
