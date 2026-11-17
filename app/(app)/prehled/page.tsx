@@ -2,12 +2,13 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { BazarBanner } from '@/components/BazarBanner'
 import { ChildAvatar } from '@/components/ChildAvatar'
+import { SeasonCard } from '@/components/SeasonCard'
 import { ShoeAlertCard } from '@/components/ShoeAlertCard'
-import { CalendarIcon, RulerIcon } from '@/components/icons'
+import { RulerIcon } from '@/components/icons'
 import { btn, EmptyState, Page } from '@/components/ui'
 import { ESHOP_URL, utm } from '@/lib/config'
 import { getChildren, getLastMeasurements, getShoeCategories, REMEASURE_AFTER_DAYS } from '@/lib/data'
-import { daysBetween, formatAge, formatAgo, formatDayMonth, greeting } from '@/lib/format'
+import { daysBetween, formatAge, formatAgo, greeting } from '@/lib/format'
 import { requireUser } from '@/lib/supabase/server'
 
 export const metadata: Metadata = { title: 'Přehled' }
@@ -124,39 +125,19 @@ export default async function OverviewPage() {
       {/* Sezóna */}
       {[...seasons.entries()].map(([code, rows]) => {
         const first = rows[0]
-        const open = first.is_open
         return (
-          <div key={code} className="flex items-start gap-3.5 rounded-[20px] border border-line bg-white p-4">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-olive-soft text-olive">
-              <CalendarIcon className="size-[22px]" />
-            </span>
-            <div className="flex flex-1 flex-col gap-1.5">
-              <span className="text-[15px] font-bold">
-                {open
-                  ? `Je čas na ${first.category_name?.toLowerCase()}`
-                  : `Za ${first.days_until_start} dní začíná sezóna: ${first.category_name?.toLowerCase()}`}
-              </span>
-              <span className="text-[13px] text-muted">
-                Nákup od {first.starts_on && formatDayMonth(first.starts_on)} do {first.ends_on && formatDayMonth(first.ends_on)}
-              </span>
-              <ul className="flex flex-col gap-1">
-                {rows.map((r) => (
-                  <li key={`${r.child_id}-${r.window_id}`} className="text-sm">
-                    <strong>{r.child_name}:</strong>{' '}
-                    {r.recommended_inner_min_mm != null
-                      ? `vnitřní délka ${r.recommended_inner_min_mm}–${r.recommended_inner_max_mm} mm`
-                      : 'nejdřív změřte nožky'}
-                    {r.days_since_measurement != null && r.days_since_measurement > 60 && (
-                      <span className="text-muted"> (měřeno {formatAgo(r.last_measured_at!)} – změřte znovu)</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-              <a href={utm(first.eshop_url ?? ESHOP_URL, 'prehled_doporuceni')} target="_blank" rel="noopener" className="mt-1 text-sm font-bold text-forest underline">
-                Prohlédnout {first.category_name?.toLowerCase()} na barevia.cz
-              </a>
-            </div>
-          </div>
+          <SeasonCard
+            key={code}
+            code={code}
+            categoryName={first.category_name ?? 'nové boty'}
+            startsOn={first.starts_on}
+            endsOn={first.ends_on}
+            isOpen={!!first.is_open}
+            daysUntilStart={first.days_until_start}
+            eshopUrl={utm(first.eshop_url ?? ESHOP_URL, 'prehled_doporuceni')}
+            rows={rows}
+            childById={childById}
+          />
         )
       })}
 
