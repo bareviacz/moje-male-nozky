@@ -1,5 +1,5 @@
 import catalog from './eshop-catalog.json'
-import { NEW_SHOE_MAX_EXTRA_MM, NEW_SHOE_MIN_EXTRA_MM } from './fit'
+import { minExtraForSize, NEW_SHOE_MAX_EXTRA_MM, OFFER_MAX_EXTRA_MM } from './fit'
 
 /**
  * Boty z e-shopu barevia.cz s velikostními tabulkami (snímek k datu stockDate).
@@ -26,19 +26,18 @@ export type FitResult =
   | { kind: 'fit'; rows: Row[]; pick: Row; alt: Row | null; status: 'ok' | 'alt' | 'out'; shown: Row; reserve: number; roomy: boolean; widthNote: string | null }
   | { kind: 'noTable' | 'tooBig' | 'tooSmall' }
 
-/** Najde nejmenší velikost s vnitřní délkou alespoň chodidlo + 8 mm (a náhradu, když došla). */
+/** Najde nejmenší velikost s dostatečnou rezervou (do vel. 26 aspoň 5 mm, od 27 aspoň 8 mm) a náhradu, když došla. */
 export function fitProduct(p: CatalogProduct, footMm: number, widthMm: number | null): FitResult {
   const rows = p.sizes.filter((s): s is Row => typeof s.innerMm === 'number').sort((a, b) => a.innerMm - b.innerMm)
   if (rows.length === 0) return { kind: 'noTable' }
-  const need = footMm + NEW_SHOE_MIN_EXTRA_MM
-  const idx = rows.findIndex((s) => s.innerMm >= need)
+  const idx = rows.findIndex((s) => s.innerMm - footMm >= minExtraForSize(s.size))
   if (idx === -1) return { kind: 'tooSmall' }
-  if (idx === 0 && rows[0].innerMm - need > NEW_SHOE_MAX_EXTRA_MM) return { kind: 'tooBig' }
+  if (rows[idx].innerMm - footMm > OFFER_MAX_EXTRA_MM) return { kind: 'tooBig' }
 
   const pick = rows[idx]
   let alt: Row | null = null
   if (!pick.inStock) {
-    alt = rows.slice(idx + 1).find((s) => s.inStock && s.innerMm - footMm <= NEW_SHOE_MAX_EXTRA_MM + 5) ?? null
+    alt = rows.slice(idx + 1).find((s) => s.inStock && s.innerMm - footMm <= OFFER_MAX_EXTRA_MM) ?? null
   }
   const status = pick.inStock ? 'ok' : alt ? 'alt' : 'out'
   const shown = alt ?? pick

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/database.types'
 import { utm } from '@/lib/config'
-import { NEW_SHOE_MAX_EXTRA_MM, NEW_SHOE_MIN_EXTRA_MM } from '@/lib/fit'
+import { minExtraForSize, OFFER_MAX_EXTRA_MM, recommendedInnerLength } from '@/lib/fit'
 
 type Pick = {
   id: string
@@ -25,7 +25,8 @@ const eu = (n: number) => String(n).replace('.', ',')
 
 /**
  * Boty z katalogu Barevie, které dítěti teď sednou: nejmenší velikost
- * s vnitřní délkou chodidlo + 8 až 12 mm (u každého modelu jedna).
+ * s dostatečnou rezervou (do vel. 26 od 5 mm, od 27 od 8 mm; ideálně do 12 mm, ukazujeme i větší).
+ * U každého modelu jedna – nejmenší, která sedí.
  */
 export async function CatalogPicks({
   supabase,
@@ -38,8 +39,8 @@ export async function CatalogPicks({
 }) {
   if (sex === 'boy') return null // zatím jen dívčí zimní boty
 
-  const min = footMm + NEW_SHOE_MIN_EXTRA_MM
-  const max = footMm + NEW_SHOE_MAX_EXTRA_MM
+  const { min, max: idealMax } = recommendedInnerLength(footMm)
+  const max = footMm + OFFER_MAX_EXTRA_MM
   const { data } = await supabase
     .from('catalog_variants')
     .select('size_eu, inner_length_mm, in_stock, catalog_products!inner(id, brand, name, url, image_url, price_czk, category, gender)')
@@ -52,6 +53,7 @@ export async function CatalogPicks({
   for (const v of data ?? []) {
     const p = v.catalog_products
     if (!p || v.in_stock === false || byProduct.has(p.id)) continue
+    if (v.inner_length_mm - footMm < minExtraForSize(Number(v.size_eu))) continue
     byProduct.set(p.id, {
       id: p.id,
       brand: p.brand,
@@ -64,7 +66,10 @@ export async function CatalogPicks({
       inStock: v.in_stock,
     })
   }
-  const picks = [...byProduct.values()].sort((a, b) => Number(b.inStock === true) - Number(a.inStock === true)).slice(0, 8)
+  const bigger = (x: Pick) => Number(x.innerMm > idealMax)
+  const picks = [...byProduct.values()]
+    .sort((a, b) => bigger(a) - bigger(b) || Number(b.inStock === true) - Number(a.inStock === true))
+    .slice(0, 8)
   if (picks.length === 0) return null
 
   return (
@@ -74,7 +79,7 @@ export async function CatalogPicks({
           Zimní boty, které teď sednou
         </h2>
         <p className="text-[13px] text-muted">
-          Z e-shopu Barevia. Podle posledního měření ({footMm} mm) vybíráme vnitřní délku {min}–{max} mm.
+          Z e-shopu Barevia. Podle posledního měření ({footMm} mm) vybíráme vnitřní délku ideálně {min}–{idealMax} mm, za nimi i větší.
         </p>
       </div>
       <ul className="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-1 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 lg:grid-cols-4">
@@ -96,6 +101,7 @@ export async function CatalogPicks({
                 <span className="mt-auto flex flex-wrap items-center gap-1.5 pt-1.5">
                   <span className="rounded-full bg-forest-soft px-2 py-0.5 text-xs font-bold text-forest">
                     vel. {eu(p.size)} · {p.innerMm} mm
+                    {p.innerMm > idealMax && <span className="font-semibold text-sun-ink"> · větší</span>}
                   </span>
                 </span>
                 <span className="text-[15px] font-bold">{czk(p.price)}</span>

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ChildAvatar } from './ChildAvatar'
 import { ShoeIcon } from './icons'
 import { cx } from './ui'
-import { NEW_SHOE_MAX_EXTRA_MM, NEW_SHOE_MIN_EXTRA_MM, SOON_SMALL_BELOW_MM } from '@/lib/fit'
+import { NEW_SHOE_MAX_EXTRA_MM, NEW_SHOE_MIN_EXTRA_MM, recommendedInnerLength, SOON_SMALL_BELOW_MM } from '@/lib/fit'
 
 const SCALE_MM = 16
 
@@ -26,6 +26,8 @@ export function ShoeAlertCard({
     ? { bg: 'bg-coral-soft', ring: 'ring-[#F3C2B4]', ink: 'text-coral-ink', wave: '#F6CDBF', badge: 'bg-coral', btn: 'bg-coral-ink hover:bg-[#86301B]' }
     : { bg: 'bg-sun-soft', ring: 'ring-[#F3DDA6]', ink: 'text-sun-deep', wave: '#F8E2AE', badge: 'bg-sun', btn: 'bg-sun-deep hover:bg-[#4A3200]' }
   const reserve = reserveMm ?? 0
+  const rec = footMm != null ? recommendedInnerLength(footMm) : null
+  const minExtra = rec?.minExtra ?? NEW_SHOE_MIN_EXTRA_MM
   const pos = (mm: number) => `${(Math.max(0, Math.min(SCALE_MM, mm)) / SCALE_MM) * 100}%`
 
   return (
@@ -69,7 +71,7 @@ export function ShoeAlertCard({
             <div className="absolute inset-y-0 left-0 rounded-l-full bg-[#F4B6A4]" style={{ width: pos(SOON_SMALL_BELOW_MM) }} />
             <div
               className="absolute inset-y-0 bg-forest-pale"
-              style={{ left: pos(NEW_SHOE_MIN_EXTRA_MM), width: pos(NEW_SHOE_MAX_EXTRA_MM - NEW_SHOE_MIN_EXTRA_MM) }}
+              style={{ left: pos(minExtra), width: pos(NEW_SHOE_MAX_EXTRA_MM - minExtra) }}
             />
             <div
               aria-hidden="true"
@@ -79,18 +81,18 @@ export function ShoeAlertCard({
           </div>
           <div className="relative mt-1.5 h-4 text-[11px] font-semibold text-muted">
             <span className="absolute left-0">0</span>
-            <span className="absolute -translate-x-1/2 text-forest" style={{ left: pos((NEW_SHOE_MIN_EXTRA_MM + NEW_SHOE_MAX_EXTRA_MM) / 2) }}>
-              nové boty {NEW_SHOE_MIN_EXTRA_MM}–{NEW_SHOE_MAX_EXTRA_MM} mm
+            <span className="absolute -translate-x-1/2 text-forest" style={{ left: pos((minExtra + NEW_SHOE_MAX_EXTRA_MM) / 2) }}>
+              nové boty {minExtra}–{NEW_SHOE_MAX_EXTRA_MM} mm
             </span>
             <span className="absolute right-0">{SCALE_MM} mm</span>
           </div>
         </div>
 
-        {footMm != null && (
+        {footMm != null && rec && (
           <p className="text-sm text-ink/80">
             Nožka měří <strong>{footMm} mm</strong> → nové boty s vnitřní délkou{' '}
             <strong>
-              {footMm + NEW_SHOE_MIN_EXTRA_MM}–{footMm + NEW_SHOE_MAX_EXTRA_MM} mm
+              {rec.min}–{rec.max} mm
             </strong>
             .
           </p>

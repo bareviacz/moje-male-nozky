@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ChildAvatar } from './ChildAvatar'
 import { CalendarIcon } from './icons'
 import { cx } from './ui'
+import { recommendedInnerLength } from '@/lib/fit'
 import { daysBetween, formatAgo, formatDayMonth, todayIso } from '@/lib/format'
 
 export type SeasonRow = {
@@ -11,6 +12,8 @@ export type SeasonRow = {
   recommended_inner_max_mm: number | null
   days_since_measurement: number | null
   last_measured_at: string | null
+  last_length_mm?: number | null
+  predicted_length_mm?: number | null
 }
 type ChildInfo = { id: string; name: string; index: number; photoUrl: string | null }
 
@@ -121,6 +124,11 @@ export function SeasonCard({
           {rows.map((r) => {
             const child = r.child_id ? childById.get(r.child_id) : undefined
             const stale = r.days_since_measurement != null && r.days_since_measurement > 60
+            // Doporučení podle pravidla v lib/fit.ts (do vel. 26 od +5 mm, od 27 od +8 mm)
+            const len = r.predicted_length_mm ?? r.last_length_mm
+            const rec = len != null ? recommendedInnerLength(len) : null
+            const recMin = rec?.min ?? r.recommended_inner_min_mm
+            const recMax = rec?.max ?? r.recommended_inner_max_mm
             return (
               <li key={r.child_id ?? r.child_name} className="flex items-center gap-3 rounded-2xl bg-white/80 px-3 py-2.5">
                 {child && <ChildAvatar name={child.name} index={child.index} size="sm" photoUrl={child.photoUrl} />}
@@ -130,11 +138,11 @@ export function SeasonCard({
                     <span className="text-xs text-muted">měřeno {formatAgo(r.last_measured_at)} – změřte znovu</span>
                   )}
                 </div>
-                {r.recommended_inner_min_mm != null ? (
+                {recMin != null ? (
                   <span className="flex flex-col items-end">
                     <span className="text-[11px] font-semibold text-muted">stélka</span>
                     <span className="font-display text-lg leading-none font-extrabold">
-                      {r.recommended_inner_min_mm}–{r.recommended_inner_max_mm} mm
+                      {recMin}–{recMax} mm
                     </span>
                   </span>
                 ) : (

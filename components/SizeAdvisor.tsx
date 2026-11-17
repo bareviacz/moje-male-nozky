@@ -6,7 +6,7 @@ import { useMemo, useState } from 'react'
 import { ChildPicker, type PickerChild } from './ChildPicker'
 import { cx, Field, inputClass } from './ui'
 import { CATALOG, fitProduct, type Audience, type CatalogProduct } from '@/lib/eshop-catalog'
-import { NEW_SHOE_MAX_EXTRA_MM, NEW_SHOE_MIN_EXTRA_MM } from '@/lib/fit'
+import { NEW_SHOE_MAX_EXTRA_MM, recommendedInnerLength } from '@/lib/fit'
 
 export type AdvisorChild = PickerChild & { lengthMm: number | null; widthMm: number | null; sex: string | null }
 
@@ -59,12 +59,12 @@ export function SizeAdvisor({ items, initialId }: { items: AdvisorChild[]; initi
             f.kind === 'noTable'
               ? 'tabulku zatím nemáme'
               : f.kind === 'tooBig'
-                ? 'nejmenší velikost je zatím velká'
+                ? 'nejmenší velikost je zatím moc velká'
                 : 'největší velikost už je malá',
         })
     }
     const rank = { ok: 0, alt: 1, out: 2 }
-    fits.sort((a, b) => rank[a.f.status] - rank[b.f.status] || a.f.reserve - b.f.reserve)
+    fits.sort((a, b) => Number(a.f.roomy) - Number(b.f.roomy) || rank[a.f.status] - rank[b.f.status] || a.f.reserve - b.f.reserve)
     return { fits, rest, inStock: fits.filter((x) => x.f.status !== 'out').length }
   }, [valid, foot, width, aud])
 
@@ -121,7 +121,7 @@ export function SizeAdvisor({ items, initialId }: { items: AdvisorChild[]; initi
           <div>
             <h2 className="font-display text-xl font-bold">{result.fits.length ? 'Boty, které sednou' : 'Nic nesedí'}</h2>
             <p className="text-sm text-muted">
-              Chodidlo {foot} mm → hledáme vnitřní délku {foot! + NEW_SHOE_MIN_EXTRA_MM}–{foot! + NEW_SHOE_MAX_EXTRA_MM} mm.
+              Chodidlo {foot} mm → ideální vnitřní délka {recommendedInnerLength(foot!).min}–{recommendedInnerLength(foot!).max} mm, ukazujeme i větší.
               {result.fits.length > 0 && ` Skladem ${result.inStock} z ${result.fits.length}.`}
             </p>
           </div>

@@ -105,7 +105,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
     photos: l.bazar_listing_photos ?? [],
   }))
   if (foot && sp.razeni === 'padne') {
-    const ideal = foot + 10
+    const ideal = (fitRange(foot).min + fitRange(foot).idealMax) / 2
     listings.sort((a, b) => Math.abs(a.inner_length_mm - ideal) - Math.abs(b.inner_length_mm - ideal))
   }
 
@@ -159,7 +159,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
           )}
           <input id="noha" name="noha" type="number" inputMode="numeric" min={60} max={300} defaultValue={kid ? '' : (foot ?? '')} placeholder="např. 148" className={inputClass} />
           <span className="text-[13px] text-muted">
-            Ukážeme boty s vnitřní délkou o 5–12 mm delší, než je nožka.
+            Ukážeme boty s vnitřní délkou o 5–12 mm delší, než je nožka (od velikosti 27 o 8–12 mm), a za nimi i o něco větší.
             {!user && ' Po přihlášení stačí klepnout na jméno dítěte z Moje malé nožky.'}
           </span>
           <a href={MERITKO_PDF_URL} target="_blank" rel="noopener" className="text-[13px] font-bold text-forest underline underline-offset-2">
@@ -221,7 +221,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
           <h1 id="nabidka" className="font-display text-[28px] leading-tight font-bold text-balance">Bazarové barefoot botičky</h1>
           <p className="text-sm text-muted tabular-nums" aria-live="polite">
             {r
-              ? `${listings.length} párů s vnitřní délkou ${r.min}–${r.max} mm${kid ? ` (${kid.name})` : ''}.`
+              ? `${listings.length} párů s vnitřní délkou od ${r.min} mm (ideálně ${r.min}–${r.idealMax} mm)${kid ? ` (${kid.name})` : ''}.`
               : `${listings.length} párů v nabídce.`}
           </p>
         </div>

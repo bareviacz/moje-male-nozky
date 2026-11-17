@@ -75,14 +75,14 @@ export default async function ListingPage({
   ])
 
   // Padnou mým dětem?
-  const fits: { name: string; foot: number; reserve: number; ok: boolean }[] = []
+  const fits: { name: string; foot: number; reserve: number; ok: boolean; range: string }[] = []
   if (user && !isOwn) {
     const [children, last] = await Promise.all([getChildren(supabase), getLastMeasurements(supabase)])
     for (const c of children) {
       const foot = last.get(c.id)?.foot_length_mm
       if (!foot) continue
       const r = fitRange(foot)
-      fits.push({ name: c.name, foot, reserve: l.inner_length_mm - foot, ok: l.inner_length_mm >= r.min && l.inner_length_mm <= r.max })
+      fits.push({ name: c.name, foot, reserve: l.inner_length_mm - foot, ok: l.inner_length_mm >= r.min && l.inner_length_mm <= r.idealMax, range: `${r.min - foot}–${r.idealMax - foot}` })
     }
   }
 
@@ -124,7 +124,7 @@ export default async function ListingPage({
                     {f.ok ? (
                       <><strong>{f.name}</strong> ({f.foot} mm): padnou, rezerva {f.reserve} mm.</>
                     ) : (
-                      <><strong>{f.name}</strong> ({f.foot} mm): rezerva {f.reserve} mm, doporučujeme 5–12 mm.</>
+                      <><strong>{f.name}</strong> ({f.foot} mm): rezerva {f.reserve} mm, doporučujeme {f.range} mm.</>
                     )}
                   </li>
                 ))}
