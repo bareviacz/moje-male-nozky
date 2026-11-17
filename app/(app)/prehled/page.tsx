@@ -62,6 +62,47 @@ export default async function OverviewPage() {
         />
       )}
 
+      {/* Děti */}
+      {children.length > 0 && (
+        <section className="flex flex-col gap-3" aria-labelledby="deti-nadpis">
+          <div className="flex items-baseline justify-between">
+            <h2 id="deti-nadpis" className="font-display text-xl font-bold">
+              Moje děti
+            </h2>
+            <Link href="/deti/nove" className="text-sm font-bold text-forest">
+              + Přidat dítě
+            </Link>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {children.map((c) => {
+              const last = lastByChild.get(c.id)
+              return (
+                <Link
+                  key={c.id}
+                  href={`/deti/${c.id}`}
+                  className="flex items-center gap-3.5 rounded-[20px] border border-line bg-white p-4 transition hover:border-field"
+                >
+                  <ChildAvatar name={c.name} index={c.index} size="lg" photoUrl={c.photoUrl} />
+                  <div className="flex flex-1 flex-col gap-0.5">
+                    <span className="text-[17px] font-bold">{c.name}</span>
+                    <span className="text-[13px] text-muted">
+                      {formatAge(c.birth_date)}
+                      {last ? ` · měřeno ${formatAgo(last.measured_at)}` : ' · zatím neměřeno'}
+                    </span>
+                  </div>
+                  {last?.foot_length_mm != null && (
+                    <div className="flex flex-col items-end">
+                      <span className="font-display text-[22px] font-bold">{last.foot_length_mm}</span>
+                      <span className="text-xs text-muted">mm</span>
+                    </div>
+                  )}
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Boty brzy malé */}
       {shoeAlerts.map((s) => {
         const child = childById.get(s.child_id!)!
@@ -118,47 +159,6 @@ export default async function OverviewPage() {
           </div>
         )
       })}
-
-      {/* Děti */}
-      {children.length > 0 && (
-        <section className="flex flex-col gap-3" aria-labelledby="deti-nadpis">
-          <div className="flex items-baseline justify-between">
-            <h2 id="deti-nadpis" className="font-display text-xl font-bold">
-              Moje děti
-            </h2>
-            <Link href="/deti/nove" className="text-sm font-bold text-forest">
-              + Přidat dítě
-            </Link>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            {children.map((c) => {
-              const last = lastByChild.get(c.id)
-              return (
-                <Link
-                  key={c.id}
-                  href={`/deti/${c.id}`}
-                  className="flex items-center gap-3.5 rounded-[20px] border border-line bg-white p-4 transition hover:border-field"
-                >
-                  <ChildAvatar name={c.name} index={c.index} size="lg" photoUrl={c.photoUrl} />
-                  <div className="flex flex-1 flex-col gap-0.5">
-                    <span className="text-[17px] font-bold">{c.name}</span>
-                    <span className="text-[13px] text-muted">
-                      {formatAge(c.birth_date)}
-                      {last ? ` · měřeno ${formatAgo(last.measured_at)}` : ' · zatím neměřeno'}
-                    </span>
-                  </div>
-                  {last?.foot_length_mm != null && (
-                    <div className="flex flex-col items-end">
-                      <span className="font-display text-[22px] font-bold">{last.foot_length_mm}</span>
-                      <span className="text-xs text-muted">mm</span>
-                    </div>
-                  )}
-                </Link>
-              )
-            })}
-          </div>
-        </section>
-      )}
 
       {/* Bazárek */}
       <BazarBanner />
