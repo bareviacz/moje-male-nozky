@@ -26,6 +26,18 @@ export const metadata: Metadata = {
     'Zapisujte délku dětských chodidel, sledujte růst a včas poznejte, kdy jsou boty malé.',
   applicationName: 'Moje malé nožky',
   appleWebApp: { capable: true, title: 'Malé nožky', statusBarStyle: 'default' },
+  openGraph: {
+    type: 'website',
+    locale: 'cs_CZ',
+    siteName: 'Moje malé nožky – Barevia',
+    title: 'Moje malé nožky – Barevia',
+    description: 'Zapisujte délku dětských chodidel, sledujte růst a včas poznejte, kdy jsou boty malé.',
+  },
+  // Ověření vlastnictví pro Google Search Console a Seznam Webmaster (kódy v proměnných prostředí na Vercelu)
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+    other: process.env.SEZNAM_WMT ? { 'seznam-wmt': process.env.SEZNAM_WMT } : undefined,
+  },
 }
 
 export const viewport: Viewport = {
