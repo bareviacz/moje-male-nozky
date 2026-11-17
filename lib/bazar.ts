@@ -75,6 +75,11 @@ export function fitRange(footMm: number) {
   return { min: footMm + NEW_SHOE_MIN_EXTRA_MM, max: footMm + NEW_SHOE_MAX_EXTRA_MM }
 }
 
+/** Zmenšený náhled přes Next Image Optimization (WebP/AVIF, cache na CDN). */
+export function thumbUrl(path: string, w: 384 | 828 = 384) {
+  return `/_next/image?url=${encodeURIComponent(publicPhotoUrl(path))}&w=${w}&q=75`
+}
+
 export function publicPhotoUrl(path: string) {
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL
   return `${base}/storage/v1/object/public/${BAZAR_BUCKET}/${path.split('/').map(encodeURIComponent).join('/')}`

@@ -17,6 +17,7 @@ import {
   LISTING_STATUS_LABEL,
   listingTitle,
   publicPhotoUrl,
+  thumbUrl,
   WIDTH_LABEL,
 } from '@/lib/bazar'
 import { getChildren, getLastMeasurements } from '@/lib/data'
@@ -87,7 +88,7 @@ export default async function ListingPage({
 
   const photos = [...(l.bazar_listing_photos ?? [])]
     .sort((a, b) => a.position - b.position)
-    .map((p) => ({ url: publicPhotoUrl(p.storage_path), kind: p.kind }))
+    .map((p) => ({ url: thumbUrl(p.storage_path, 828), kind: p.kind }))
 
   return (
     <div className="flex flex-col gap-4">

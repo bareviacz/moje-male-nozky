@@ -5,7 +5,7 @@ import {
   formatCzk,
   formatEu,
   listingTitle,
-  publicPhotoUrl,
+  thumbUrl,
   WIDTH_LABEL,
   type BazarCondition,
   type BazarPhotoKind,
@@ -45,7 +45,7 @@ export function ListingCard({ l, footMm }: { l: ListingCardData; footMm?: number
       <div className="relative aspect-[4/5] shrink-0 overflow-hidden bg-ground">
         {cover ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={publicPhotoUrl(cover.storage_path)} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
+          <img src={thumbUrl(cover.storage_path)} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
         ) : (
           <div className="flex size-full items-center justify-center text-field">
             <ShoeIcon className="size-16" strokeWidth={1.2} />

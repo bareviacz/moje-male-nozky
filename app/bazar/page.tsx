@@ -6,6 +6,7 @@ import { btn, cx, EmptyState, inputClass } from '@/components/ui'
 import { BAREFOOT_BRANDS, CONDITION_LABEL, fitRange, isCondition, isWidth, WIDTH_LABEL } from '@/lib/bazar'
 import { getChildren, getLastMeasurements } from '@/lib/data'
 import { isUuid } from '@/lib/forms'
+import { MERITKO_PDF_URL } from '@/lib/config'
 import { createClient } from '@/lib/supabase/server'
 
 type Search = {
@@ -26,9 +27,18 @@ const CONDITION_ORDER = ['nove', 'jako_nove', 'lehce_nosene', 'nosene', 'hodne_n
 export default async function BazarPage({ searchParams }: { searchParams: Promise<Search> }) {
   const sp = await searchParams
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Nezávislé dotazy najednou – každé čekání navíc je znát
+  const [
+    {
+      data: { user },
+    },
+    { data: categories },
+    citiesRes,
+  ] = await Promise.all([
+    supabase.auth.getUser(),
+    supabase.from('shoe_categories').select('code, name').order('sort_order'),
+    supabase.from('bazar_listings').select('bazar_sellers!inner(city)').in('status', ['aktivni', 'rezervovano']).limit(1000),
+  ])
 
   // Děti přihlášeného rodiče a jejich poslední délka nožky (pro filtr „padne“)
   const kids: { id: string; name: string; foot: number | null }[] = []
@@ -41,7 +51,6 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
   const footRaw = kid?.foot ?? Number(sp.noha)
   const foot = Number.isFinite(footRaw) && footRaw >= 60 && footRaw <= 300 ? Math.round(footRaw) : null
 
-  const { data: categories } = await supabase.from('shoe_categories').select('code, name').order('sort_order')
   const catName = new Map((categories ?? []).map((c) => [c.code, c.name]))
 
   let q = supabase
@@ -70,10 +79,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
       ? q.order('price_czk', { ascending: true })
       : q.order('status', { ascending: true }).order('created_at', { ascending: false })
 
-  const [{ data, error }, citiesRes] = await Promise.all([
-    q.limit(120),
-    supabase.from('bazar_listings').select('bazar_sellers!inner(city)').in('status', ['aktivni', 'rezervovano']).limit(1000),
-  ])
+  const { data, error } = await q.limit(120)
   const cities = [
     ...new Set((citiesRes.data ?? []).map((r) => r.bazar_sellers?.city?.trim()).filter((c): c is string => !!c)),
   ].sort((a, b) => a.localeCompare(b, 'cs'))
@@ -152,6 +158,9 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
             Ukážeme boty s vnitřní délkou o 8–12 mm delší, než je nožka.
             {!user && ' Po přihlášení stačí klepnout na jméno dítěte z Moje malé nožky.'}
           </span>
+          <a href={MERITKO_PDF_URL} target="_blank" rel="noopener" className="text-[13px] font-bold text-forest underline underline-offset-2">
+            📏 Měřítko na nožku k vytištění (PDF, A4)
+          </a>
         </div>
 
         <FiltersToggle defaultOpen={anyFilter}>

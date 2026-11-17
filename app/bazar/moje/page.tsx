@@ -11,7 +11,7 @@ import {
   LISTING_STATUS_LABEL,
   listingTitle,
   ORDER_STATUS_LABEL,
-  publicPhotoUrl,
+  thumbUrl,
   type BazarOrderStatus,
 } from '@/lib/bazar'
 import { createClient } from '@/lib/supabase/server'
@@ -24,7 +24,7 @@ const TODO_BUYER: BazarOrderStatus[] = ['ceka_na_postovne', 'postovne_zaplaceno'
 function Thumb({ path }: { path?: string }) {
   return path ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={publicPhotoUrl(path)} alt="" className="size-16 shrink-0 rounded-xl object-cover ring-1 ring-line" />
+    <img src={thumbUrl(path)} alt="" className="size-16 shrink-0 rounded-xl object-cover ring-1 ring-line" />
   ) : (
     <span className="size-16 shrink-0 rounded-xl bg-ground ring-1 ring-line" />
   )

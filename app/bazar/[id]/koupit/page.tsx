@@ -5,7 +5,7 @@ import { BuyForm } from '@/components/bazar/BuyForm'
 import { coverPhoto } from '@/components/bazar/ListingCard'
 import { SellerForm } from '@/components/bazar/SellerForm'
 import { Card, PageTitle } from '@/components/ui'
-import { formatCzk, formatEu, listingTitle, publicPhotoUrl } from '@/lib/bazar'
+import { formatCzk, formatEu, listingTitle, thumbUrl } from '@/lib/bazar'
 import { isUuid } from '@/lib/forms'
 import { createClient } from '@/lib/supabase/server'
 
@@ -41,7 +41,7 @@ export default async function BuyPage({ params }: { params: Promise<{ id: string
       <Card className="flex items-center gap-3.5">
         {cover && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={publicPhotoUrl(cover.storage_path)} alt="" className="size-16 rounded-xl object-cover ring-1 ring-line" />
+          <img src={thumbUrl(cover.storage_path)} alt="" className="size-16 rounded-xl object-cover ring-1 ring-line" />
         )}
         <div className="flex flex-col">
           <span className="font-bold">{listingTitle(l)}</span>

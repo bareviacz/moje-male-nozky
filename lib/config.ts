@@ -4,6 +4,9 @@ export const ESHOP_URL = 'https://www.barevia.cz/'
  * Zásady ochrany osobních údajů – stejné jako na e-shopu (Shoptet).
  * Ověřte prosím přesnou adresu stránky v administraci Shoptetu.
  */
+/** Tisknutelné měřítko na nožku (A4, PDF) z e-shopu. */
+export const MERITKO_PDF_URL = 'https://www.barevia.cz/user/documents/upload/Barevia-meritko-na-nozku-A4.pdf'
+
 export const PRIVACY_URL = 'https://www.barevia.cz/podminky-ochrany-osobnich-udaju/'
 
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'

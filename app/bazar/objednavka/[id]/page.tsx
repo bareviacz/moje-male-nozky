@@ -13,7 +13,7 @@ import {
   formatEu,
   listingTitle,
   ORDER_STATUS_LABEL,
-  publicPhotoUrl,
+  thumbUrl,
   spayd,
   type BazarOrderStatus,
 } from '@/lib/bazar'
@@ -118,7 +118,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       <Card className="flex items-center gap-3.5">
         {cover && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={publicPhotoUrl(cover.storage_path)} alt="" className="size-16 rounded-xl object-cover ring-1 ring-line" />
+          <img src={thumbUrl(cover.storage_path)} alt="" className="size-16 rounded-xl object-cover ring-1 ring-line" />
         )}
         <div className="flex flex-col">
           <span className="font-bold">{l ? listingTitle(l) : 'Boty'}</span>
