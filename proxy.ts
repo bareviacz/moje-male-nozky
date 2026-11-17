@@ -9,6 +9,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     // Vše kromě statických souborů a obrázků
-    '/((?!_next/static|_next/image|_vercel|favicon.ico|icon|apple-icon|manifest.webmanifest|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)',
+    '/((?!_next/static|_next/image|_vercel|robots.txt|sitemap.xml|google[0-9a-f]*\\.html|seznam-wmt|favicon.ico|icon|apple-icon|manifest.webmanifest|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)',
   ],
 }
