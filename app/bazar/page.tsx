@@ -159,7 +159,7 @@ export default async function BazarPage({ searchParams }: { searchParams: Promis
           )}
           <input id="noha" name="noha" type="number" inputMode="numeric" min={60} max={300} defaultValue={kid ? '' : (foot ?? '')} placeholder="např. 148" className={inputClass} />
           <span className="text-[13px] text-muted">
-            Ukážeme boty s vnitřní délkou o 8–12 mm delší, než je nožka.
+            Ukážeme boty s vnitřní délkou o 5–12 mm delší, než je nožka.
             {!user && ' Po přihlášení stačí klepnout na jméno dítěte z Moje malé nožky.'}
           </span>
           <a href={MERITKO_PDF_URL} target="_blank" rel="noopener" className="text-[13px] font-bold text-forest underline underline-offset-2">

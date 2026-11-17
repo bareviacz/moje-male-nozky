@@ -1,5 +1,5 @@
 import type { Database } from './database.types'
-import { NEW_SHOE_MAX_EXTRA_MM, NEW_SHOE_MIN_EXTRA_MM } from './fit'
+import { NEW_SHOE_MAX_EXTRA_MM } from './fit'
 
 type Enums = Database['public']['Enums']
 export type BazarWidth = Enums['bazar_width']
@@ -67,12 +67,15 @@ export const isCondition = (v: string): v is BazarCondition => v in CONDITION_LA
 export const isPhotoKind = (v: string): v is BazarPhotoKind => v in PHOTO_KIND_LABEL
 export const isOrderStatus = (v: string): v is BazarOrderStatus => v in ORDER_STATUS_LABEL
 
+/** V bazaru ukazujeme boty už od 5 mm rezervy (obnošené boty se mírně vytahají). */
+export const BAZAR_MIN_EXTRA_MM = 5
+
 /**
- * Boty z bazaru „padnou“, když je vnitřní délka o 8–12 mm delší než nožka
- * (stejné pravidlo jako pro nové boty v Moje malé nožky).
+ * Boty z bazaru „padnou“, když je vnitřní délka o 5–12 mm delší než nožka
+ * (horní hranice stejná jako pro nové boty v Moje malé nožky).
  */
 export function fitRange(footMm: number) {
-  return { min: footMm + NEW_SHOE_MIN_EXTRA_MM, max: footMm + NEW_SHOE_MAX_EXTRA_MM }
+  return { min: footMm + BAZAR_MIN_EXTRA_MM, max: footMm + NEW_SHOE_MAX_EXTRA_MM }
 }
 
 /** Zmenšený náhled přes Next Image Optimization (WebP/AVIF, cache na CDN). */

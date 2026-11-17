@@ -124,7 +124,7 @@ export default async function ListingPage({
                     {f.ok ? (
                       <><strong>{f.name}</strong> ({f.foot} mm): padnou, rezerva {f.reserve} mm.</>
                     ) : (
-                      <><strong>{f.name}</strong> ({f.foot} mm): rezerva {f.reserve} mm, doporučujeme 8–12 mm.</>
+                      <><strong>{f.name}</strong> ({f.foot} mm): rezerva {f.reserve} mm, doporučujeme 5–12 mm.</>
                     )}
                   </li>
                 ))}
