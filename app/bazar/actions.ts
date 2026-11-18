@@ -277,14 +277,19 @@ export async function setListingStatus(formData: FormData) {
 
 export async function createOrder(_: FormState, formData: FormData): Promise<FormState> {
   const listingId = str(formData, 'listing_id')
-  const pointId = str(formData, 'pickup_point_id')
-  const pointName = str(formData, 'pickup_point_name')
+  let pointId = str(formData, 'pickup_point_id')
+  let pointName = str(formData, 'pickup_point_name')
   const name = str(formData, 'buyer_name')
   const email = str(formData, 'buyer_email')
   const phone = str(formData, 'buyer_phone') || undefined
   const method = str(formData, 'shipping_method') === 'vlastni_stitek' ? 'vlastni_stitek' : 'postovne'
 
   if (!isUuid(listingId)) return fail(formData, dbErrorCs())
+  // S vlastním štítkem si kupující místo doručení volí sám v aplikaci dopravce
+  if (method === 'vlastni_stitek') {
+    pointId = 'vlastni_stitek'
+    pointName = 'Vlastní štítek kupujícího'
+  }
   if (!pointName || pointName.length > 200) return fail(formData, 'Vyberte výdejní místo, Z-BOX nebo Balíkovnu.')
   if (name.length < 2 || name.length > 100) return fail(formData, 'Vyplňte jméno a příjmení.')
   if (!EMAIL_RE.test(email)) return fail(formData, 'Zadejte platný e-mail.')

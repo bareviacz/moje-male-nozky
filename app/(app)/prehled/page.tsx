@@ -2,11 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { BazarBanner } from '@/components/BazarBanner'
 import { ChildAvatar } from '@/components/ChildAvatar'
+import { FirstChildCard } from '@/components/FirstChildCard'
 import { MeritkoCard } from '@/components/MeritkoCard'
 import { SeasonCard } from '@/components/SeasonCard'
 import { ShoeAlertCard } from '@/components/ShoeAlertCard'
 import { RulerIcon } from '@/components/icons'
-import { btn, EmptyState, Page } from '@/components/ui'
+import { Page } from '@/components/ui'
 import { ESHOP_URL, utm } from '@/lib/config'
 import { getChildren, getLastMeasurements, getShoeCategories, REMEASURE_AFTER_DAYS } from '@/lib/data'
 import { daysBetween, formatAge, formatAgo, greeting } from '@/lib/format'
@@ -52,17 +53,7 @@ export default async function OverviewPage() {
         </div>
       </div>
 
-      {children.length === 0 && (
-        <EmptyState
-          title="Přidejte první dítě"
-          text="Zadejte jméno a datum narození. Pak můžete zapsat první měření nožek."
-          action={
-            <Link href="/deti/nove" className={btn.small}>
-              Přidat dítě
-            </Link>
-          }
-        />
-      )}
+      {children.length === 0 && <FirstChildCard />}
 
       {/* Děti */}
       {children.length > 0 && (

@@ -12,7 +12,7 @@ export type BazarPhotoKind = Enums['bazar_photo_kind']
 export const BAZAR_BUCKET = 'bazar-photos'
 
 /** Poštovné v Kč – přičítá se k ceně bot. Musí odpovídat hodnotě v databázi (bazar_create_order). */
-export const BAZAR_SHIPPING_CZK = 55
+export const BAZAR_SHIPPING_CZK = 89
 
 export const WIDTH_LABEL: Record<BazarWidth, string> = {
   uzka: 'Úzká',

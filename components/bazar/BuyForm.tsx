@@ -63,74 +63,6 @@ export function BuyForm({
       <input type="hidden" name="listing_id" value={listingId} />
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 text-sm font-bold">Kam boty poslat</legend>
-        <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Dopravce">
-          {(['zasilkovna', 'balikovna'] as const).map((c) => (
-            <button
-              key={c}
-              type="button"
-              role="radio"
-              aria-checked={carrier === c}
-              onClick={() => {
-                if (carrier !== c) {
-                  setCarrier(c)
-                  setPoint(null)
-                }
-              }}
-              className={cx('rounded-2xl bg-white px-4 py-3 font-bold ring-1', carrier === c ? 'ring-2 ring-forest' : 'ring-line')}
-            >
-              {CARRIER_LABEL[c]}
-            </button>
-          ))}
-        </div>
-        <input type="hidden" name="pickup_point_id" value={point ? `${carrier}:${point.id}` : ''} />
-        <input type="hidden" name="pickup_point_name" value={point ? `${CARRIER_LABEL[carrier]}: ${point.name}` : ''} />
-        {point && <p className="rounded-2xl bg-forest-soft px-4 py-3 text-[15px] font-semibold">{point.name}</p>}
-
-        {carrier === 'balikovna' ? (
-          <>
-            <button type="button" onClick={() => setMapOpen(true)} className={btn.secondary}>
-              {point ? 'Změnit Balíkovnu' : 'Vybrat Balíkovnu na mapě'}
-            </button>
-            {mapOpen && <BalikovnaMap onClose={() => setMapOpen(false)} onPick={(p) => { setPoint(p); setMapOpen(false) }} />}
-          </>
-        ) : PACKETA_KEY ? (
-          <>
-            <Script src="https://widget.packeta.com/v6/www/js/library.js" strategy="lazyOnload" />
-            <button type="button" onClick={pick} className={btn.secondary}>
-              {point ? 'Změnit výdejní místo' : 'Vybrat Z-BOX nebo výdejní místo na mapě'}
-            </button>
-          </>
-        ) : (
-          <>
-            <input
-              id="pickup_point_text"
-              type="text"
-              maxLength={180}
-              value={point?.name ?? ''}
-              onChange={(e) => setPoint(e.target.value.trim() ? { id: '', name: e.target.value } : null)}
-              placeholder="např. Z-BOX Brno, Lidická 12"
-              aria-label="Z-BOX nebo výdejní místo Zásilkovny"
-              className={inputClass}
-            />
-            <span className="text-[13px] text-muted">Napište adresu Z-BOXu nebo výdejního místa Zásilkovny.</span>
-          </>
-        )}
-      </fieldset>
-
-      <Field label="Jméno a příjmení" htmlFor="buyer_name">
-        <input id="buyer_name" name="buyer_name" type="text" autoComplete="name" maxLength={100} defaultValue={v?.buyer_name ?? defaultName} className={inputClass} />
-      </Field>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="E-mail" htmlFor="buyer_email">
-          <input id="buyer_email" name="buyer_email" type="email" autoComplete="email" defaultValue={v?.buyer_email ?? defaultEmail} className={inputClass} />
-        </Field>
-        <Field label="Telefon (pro SMS od dopravce)" htmlFor="buyer_phone">
-          <input id="buyer_phone" name="buyer_phone" type="tel" autoComplete="tel" maxLength={20} defaultValue={v?.buyer_phone} className={inputClass} />
-        </Field>
-      </div>
-
-      <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-bold">Doprava</legend>
         <label className={cx('flex cursor-pointer gap-3 rounded-2xl bg-white p-4 ring-1', method === 'postovne' ? 'ring-2 ring-forest' : 'ring-line')}>
           <input type="radio" name="shipping_method" value="postovne" checked={method === 'postovne'} onChange={() => setMethod('postovne')} className="mt-1 size-5 accent-forest" />
@@ -144,11 +76,82 @@ export function BuyForm({
           <span className="flex flex-col">
             <span className="font-bold">Vlastní štítek · bez poštovného</span>
             <span className="text-sm text-muted">
-              Zásilku si zaplatíte sami v aplikaci dopravce (Zásilkovna, Balíkovna…) a podací kód vložíte do objednávky. Prodejce s ním balík jen odnese.
+              Zásilku si zaplatíte sami v aplikaci dopravce (Zásilkovna, Balíkovna…) a tam si zvolíte i výdejní místo. Podací kód vložíte do objednávky, prodejce s ním balík jen odnese.
             </span>
           </span>
         </label>
       </fieldset>
+
+      {method === 'postovne' && (
+        <fieldset className="flex flex-col gap-2">
+          <legend className="mb-1 text-sm font-bold">Kam boty poslat</legend>
+          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Dopravce">
+            {(['zasilkovna', 'balikovna'] as const).map((c) => (
+              <button
+                key={c}
+                type="button"
+                role="radio"
+                aria-checked={carrier === c}
+                onClick={() => {
+                  if (carrier !== c) {
+                    setCarrier(c)
+                    setPoint(null)
+                  }
+                }}
+                className={cx('rounded-2xl bg-white px-4 py-3 font-bold ring-1', carrier === c ? 'ring-2 ring-forest' : 'ring-line')}
+              >
+                {CARRIER_LABEL[c]}
+              </button>
+            ))}
+          </div>
+          <input type="hidden" name="pickup_point_id" value={point ? `${carrier}:${point.id}` : ''} />
+          <input type="hidden" name="pickup_point_name" value={point ? `${CARRIER_LABEL[carrier]}: ${point.name}` : ''} />
+          {point && <p className="rounded-2xl bg-forest-soft px-4 py-3 text-[15px] font-semibold">{point.name}</p>}
+
+          {carrier === 'balikovna' ? (
+            <>
+              <button type="button" onClick={() => setMapOpen(true)} className={btn.secondary}>
+                {point ? 'Změnit Balíkovnu' : 'Vybrat Balíkovnu na mapě'}
+              </button>
+              {mapOpen && <BalikovnaMap onClose={() => setMapOpen(false)} onPick={(p) => { setPoint(p); setMapOpen(false) }} />}
+            </>
+          ) : PACKETA_KEY ? (
+            <>
+              <Script src="https://widget.packeta.com/v6/www/js/library.js" strategy="lazyOnload" />
+              <button type="button" onClick={pick} className={btn.secondary}>
+                {point ? 'Změnit výdejní místo' : 'Vybrat Z-BOX nebo výdejní místo na mapě'}
+              </button>
+            </>
+          ) : (
+            <>
+              <input
+                id="pickup_point_text"
+                type="text"
+                maxLength={180}
+                value={point?.name ?? ''}
+                onChange={(e) => setPoint(e.target.value.trim() ? { id: '', name: e.target.value } : null)}
+                placeholder="např. Z-BOX Brno, Lidická 12"
+                aria-label="Z-BOX nebo výdejní místo Zásilkovny"
+                className={inputClass}
+              />
+              <span className="text-[13px] text-muted">Napište adresu Z-BOXu nebo výdejního místa Zásilkovny.</span>
+            </>
+          )}
+        </fieldset>
+      )}
+
+      <Field label="Jméno a příjmení" htmlFor="buyer_name">
+        <input id="buyer_name" name="buyer_name" type="text" autoComplete="name" maxLength={100} defaultValue={v?.buyer_name ?? defaultName} className={inputClass} />
+      </Field>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="E-mail" htmlFor="buyer_email">
+          <input id="buyer_email" name="buyer_email" type="email" autoComplete="email" defaultValue={v?.buyer_email ?? defaultEmail} className={inputClass} />
+        </Field>
+        <Field label="Telefon (pro SMS od dopravce)" htmlFor="buyer_phone">
+          <input id="buyer_phone" name="buyer_phone" type="tel" autoComplete="tel" maxLength={20} defaultValue={v?.buyer_phone} className={inputClass} />
+        </Field>
+      </div>
+
 
       <dl className="flex flex-col gap-1.5 rounded-2xl bg-white p-4 text-[15px] ring-1 ring-line tabular-nums">
         <div className="flex justify-between gap-3">
