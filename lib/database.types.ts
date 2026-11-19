@@ -230,9 +230,9 @@ export type Database = {
         ]
       }
       bazar_sellers: {
-        Row: { city: string | null; created_at: string; is_admin: boolean; is_barevia: boolean; nickname: string; updated_at: string; user_id: string }
-        Insert: { city?: string | null; created_at?: string; is_admin?: boolean; is_barevia?: boolean; nickname: string; updated_at?: string; user_id: string }
-        Update: { city?: string | null; created_at?: string; is_admin?: boolean; is_barevia?: boolean; nickname?: string; updated_at?: string; user_id?: string }
+        Row: { city: string | null; created_at: string; is_admin: boolean; is_barevia: boolean; nickname: string; terms_accepted_at: string | null; updated_at: string; user_id: string }
+        Insert: { city?: string | null; created_at?: string; is_admin?: boolean; is_barevia?: boolean; nickname: string; terms_accepted_at?: string | null; updated_at?: string; user_id: string }
+        Update: { city?: string | null; created_at?: string; is_admin?: boolean; is_barevia?: boolean; nickname?: string; terms_accepted_at?: string | null; updated_at?: string; user_id?: string }
         Relationships: [
           { foreignKeyName: "bazar_sellers_user_id_fkey"; columns: ["user_id"]; isOneToOne: true; referencedRelation: "profiles"; referencedColumns: ["id"] },
         ]

@@ -3,6 +3,7 @@
 import { useActionState, useMemo, useRef, useState } from 'react'
 import { createListing, updateListing } from '@/app/bazar/actions'
 import { BAREFOOT_BRANDS, BAZAR_BUCKET, CONDITION_LABEL, PHOTO_KIND_LABEL, WIDTH_LABEL, type BazarPhotoKind } from '@/lib/bazar'
+import { BAZAR_TERMS_PATH } from '@/lib/config'
 import type { FormState } from '@/lib/forms'
 import { resizeImage } from '@/lib/photos'
 import { createClient } from '@/lib/supabase/client'
@@ -224,6 +225,18 @@ export function ListingForm({
       </Field>
 
       <FormMessage error={state?.error} />
+      {!edit && (
+        <div className="flex items-start gap-3">
+          <input id="terms" name="terms" type="checkbox" required defaultChecked={v?.terms === 'on'} className="mt-0.5 size-[22px] shrink-0 accent-forest" />
+          <label htmlFor="terms" className="text-sm leading-relaxed">
+            Potvrzuji, že boty mi patří a popis, rozměry i fotky odpovídají skutečnosti. Souhlasím s{' '}
+            <a href={BAZAR_TERMS_PATH} target="_blank" className="font-bold text-forest underline">
+              podmínkami užívání Bazárku
+            </a>
+            .
+          </label>
+        </div>
+      )}
       <SubmitButton pendingText={edit ? 'Ukládám…' : 'Nahrávám fotky a zveřejňuji…'}>{edit ? 'Uložit změny' : 'Zveřejnit inzerát'}</SubmitButton>
     </form>
   )

@@ -4,6 +4,7 @@ import Script from 'next/script'
 import { useActionState, useState } from 'react'
 import { createOrder } from '@/app/bazar/actions'
 import { BAZAR_SHIPPING_CZK, formatCzk } from '@/lib/bazar'
+import { BAZAR_TERMS_PATH, ESHOP_TERMS_URL } from '@/lib/config'
 import type { FormState } from '@/lib/forms'
 import { SubmitButton } from '../SubmitButton'
 import { BalikovnaMap } from './BalikovnaMap'
@@ -26,11 +27,13 @@ export function BuyForm({
   price,
   defaultName,
   defaultEmail,
+  sellerIsBarevia = false,
 }: {
   listingId: string
   price: number
   defaultName: string
   defaultEmail: string
+  sellerIsBarevia?: boolean
 }) {
   const [state, action] = useActionState<FormState, FormData>(createOrder, undefined)
   const v = state?.values
@@ -168,8 +171,25 @@ export function BuyForm({
         </div>
       </dl>
       <p className="text-[13px] leading-relaxed text-muted">
-        Objednáním si boty rezervujete a hned uvidíte QR kód pro platbu prodejci. Vy i prodejce uvidíte navzájem e-mail
-        a telefon. Kupujete od soukromé osoby, proto se na nákup nevztahuje 14denní lhůta pro vrácení.
+        Objednáním si boty rezervujete a hned uvidíte QR kód pro platbu prodejci. Vy i prodejce uvidíte navzájem e-mail a
+        telefon.{' '}
+        {sellerIsBarevia ? (
+          <>
+            Boty prodává přímo Barevia, platí{' '}
+            <a href={ESHOP_TERMS_URL} target="_blank" rel="noopener" className="font-bold text-forest underline">
+              obchodní podmínky e-shopu barevia.cz
+            </a>{' '}
+            včetně 14 dnů na vrácení.
+          </>
+        ) : (
+          <>
+            Kupujete od soukromé osoby, proto se na nákup nevztahuje 14denní lhůta pro vrácení. Více v{' '}
+            <a href={BAZAR_TERMS_PATH} target="_blank" className="font-bold text-forest underline">
+              podmínkách Bazárku
+            </a>
+            .
+          </>
+        )}
       </p>
 
       <FormMessage error={state?.error} />

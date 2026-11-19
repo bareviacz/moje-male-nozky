@@ -48,9 +48,10 @@ export async function saveSeller(_: FormState, formData: FormData): Promise<Form
 
   const { supabase, user } = await requireBazarUser(back)
   const { data: existing } = await supabase.from('bazar_sellers').select('user_id').eq('user_id', user.id).maybeSingle()
+  if (!existing && formData.get('terms') !== 'on') return fail(formData, 'Pro vstup do Bazárku je potřeba souhlas s podmínkami.')
   const { error } = existing
     ? await supabase.from('bazar_sellers').update({ nickname, city }).eq('user_id', user.id)
-    : await supabase.from('bazar_sellers').insert({ user_id: user.id, nickname, city })
+    : await supabase.from('bazar_sellers').insert({ user_id: user.id, nickname, city, terms_accepted_at: new Date().toISOString() })
   if (error) return fail(formData, dbErrorCs())
 
   if (account) {
@@ -158,6 +159,7 @@ function badPhotos(d: ListingInput, userId: string) {
 export async function createListing(_: FormState, formData: FormData): Promise<FormState> {
   const d = parseListing(formData)
   if (typeof d === 'string') return fail(formData, d)
+  if (formData.get('terms') !== 'on') return fail(formData, 'Potvrďte prosím, že inzerát odpovídá skutečnosti a souhlasíte s podmínkami.')
   const sourceShoe = str(formData, 'source_shoe_id') || null
   if (sourceShoe && !isUuid(sourceShoe)) return fail(formData, dbErrorCs())
 

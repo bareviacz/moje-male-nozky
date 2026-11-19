@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { BazarNav } from '@/components/bazar/BazarNav'
 import { createClient } from '@/lib/supabase/server'
+import { BAZAR_TERMS_PATH, PRIVACY_URL } from '@/lib/config'
 
 export const metadata: Metadata = {
   title: {
@@ -32,7 +33,16 @@ export default async function BazarLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-dvh">
       <BazarNav todo={todo} loggedIn={!!user} />
-      <main className="mx-auto w-full max-w-5xl px-5 pt-5 pb-28 md:px-8 md:pt-8 md:pb-12">{children}</main>
+      <main className="mx-auto w-full max-w-5xl px-5 pt-5 pb-6 md:px-8 md:pt-8">{children}</main>
+      <footer className="mx-auto flex w-full max-w-5xl flex-wrap gap-x-5 gap-y-1 px-5 pb-28 text-[13px] text-muted md:px-8 md:pb-10">
+        <a href={BAZAR_TERMS_PATH} className="font-semibold underline-offset-2 hover:underline">
+          Podmínky užívání
+        </a>
+        <a href={PRIVACY_URL} target="_blank" rel="noopener" className="font-semibold underline-offset-2 hover:underline">
+          Ochrana osobních údajů
+        </a>
+        <span>© Barevia.cz</span>
+      </footer>
     </div>
   )
 }

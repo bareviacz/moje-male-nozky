@@ -37,3 +37,7 @@ export const ESHOP_TIP_BY_CATEGORY: Record<string, string> = {
   summer: 'https://www.barevia.cz/detske-sandaly/',
   slippers: 'https://www.barevia.cz/detske-barefoot-backory-a-papuce/',
 }
+
+/** Podmínky užívání Bazárku (stránka v aplikaci) a obchodní podmínky e-shopu (pro boty, které prodává Barevia). */
+export const BAZAR_TERMS_PATH = '/bazar/podminky'
+export const ESHOP_TERMS_URL = 'https://www.barevia.cz/obchodni-podminky/'

@@ -7,7 +7,7 @@ import { DeleteAccountForm } from '@/components/DeleteAccountForm'
 import { ProfileForm } from '@/components/ProfileForm'
 import { SubmitButton } from '@/components/SubmitButton'
 import { Card, PageTitle } from '@/components/ui'
-import { PRIVACY_URL } from '@/lib/config'
+import { BAZAR_TERMS_PATH, PRIVACY_URL } from '@/lib/config'
 import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = { title: 'Profil', robots: { index: false } }
@@ -62,6 +62,9 @@ export default async function BazarProfilePage({ searchParams }: { searchParams:
       <Card className="flex flex-col gap-3 p-5">
         <Link href="/prehled" className="text-[15px] font-semibold text-forest underline">
           Moje malé nožky – měření a boty dětí
+        </Link>
+        <Link href={BAZAR_TERMS_PATH} className="text-[15px] font-semibold text-forest underline">
+          Podmínky užívání Bazárku
         </Link>
         <a href={PRIVACY_URL} target="_blank" rel="noopener" className="text-[15px] font-semibold text-forest underline">
           Zásady ochrany osobních údajů

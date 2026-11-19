@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import { saveSeller } from '@/app/bazar/actions'
 import { SubmitButton } from '../SubmitButton'
+import { BAZAR_TERMS_PATH } from '@/lib/config'
 import { Field, FormMessage, inputClass } from '../ui'
 
 export function SellerForm({
@@ -52,6 +53,18 @@ export function SellerForm({
             <input id="phone" name="phone" type="tel" autoComplete="tel" maxLength={20} defaultValue={v?.phone ?? initial?.phone ?? ''} className={inputClass} />
           </Field>
         </>
+      )}
+      {!initial && (
+        <div className="flex items-start gap-3">
+          <input id="terms" name="terms" type="checkbox" required defaultChecked={v?.terms === 'on'} className="mt-0.5 size-[22px] shrink-0 accent-forest" />
+          <label htmlFor="terms" className="text-sm leading-relaxed">
+            Souhlasím s{' '}
+            <a href={BAZAR_TERMS_PATH} target="_blank" className="font-bold text-forest underline">
+              podmínkami užívání Bazárku
+            </a>
+            . Beru na vědomí, že obchod uzavírám přímo s druhým rodičem.
+          </label>
+        </div>
       )}
       <FormMessage error={state?.error} />
       <SubmitButton>{submitLabel ?? (needAccount ? 'Uložit a pokračovat' : 'Uložit přezdívku')}</SubmitButton>

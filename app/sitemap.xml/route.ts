@@ -11,7 +11,7 @@ export async function GET() {
   const urls: { loc: string; lastmod?: string; priority: string }[] = []
 
   if (isBazar) {
-    urls.push({ loc: `${origin}/`, priority: '1.0' })
+    urls.push({ loc: `${origin}/`, priority: '1.0' }, { loc: `${origin}/podminky`, priority: '0.2' })
     const supabase = createClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
       auth: { persistSession: false },
     })

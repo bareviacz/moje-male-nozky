@@ -23,7 +23,7 @@ export default async function BuyPage({ params }: { params: Promise<{ id: string
   const [{ data: l }, { data: me }, { data: profile }] = await Promise.all([
     supabase
       .from('bazar_listings')
-      .select('id, brand, model, size_eu, inner_length_mm, price_czk, status, seller_id, bazar_listing_photos(storage_path, kind, position)')
+      .select('id, brand, model, size_eu, inner_length_mm, price_czk, status, seller_id, bazar_sellers!inner(is_barevia), bazar_listing_photos(storage_path, kind, position)')
       .eq('id', id)
       .maybeSingle(),
     supabase.from('bazar_sellers').select('nickname').eq('user_id', user.id).maybeSingle(),
@@ -52,7 +52,7 @@ export default async function BuyPage({ params }: { params: Promise<{ id: string
       </Card>
 
       {me ? (
-        <BuyForm listingId={l.id} price={l.price_czk} defaultName={profile?.display_name ?? ''} defaultEmail={user.email ?? ''} />
+        <BuyForm listingId={l.id} price={l.price_czk} sellerIsBarevia={l.bazar_sellers?.is_barevia ?? false} defaultName={profile?.display_name ?? ''} defaultEmail={user.email ?? ''} />
       ) : (
         <Card className="flex flex-col gap-4 p-5">
           <p className="text-[15px] leading-relaxed">
