@@ -111,8 +111,8 @@ export function RegisterForm({ next }: { next?: string } = {}) {
           Souhlasím se{' '}
           <a href={PRIVACY_URL} target="_blank" rel="noopener" className="font-bold text-forest underline">
             zpracováním osobních údajů
-          </a>{' '}
-          o mně a mých dětech.
+          </a>
+          .
         </label>
       </div>
       <FormMessage error={state?.error} />
