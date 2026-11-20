@@ -319,6 +319,16 @@ export async function createOrder(_: FormState, formData: FormData): Promise<For
   redirect(`/bazar/objednavka/${data}`)
 }
 
+export async function addToOrder(formData: FormData) {
+  const orderId = str(formData, 'order_id')
+  const listingId = str(formData, 'listing_id')
+  if (!isUuid(orderId) || !isUuid(listingId)) return
+  const { supabase } = await requireBazarUser(`/bazar/objednavka/${orderId}`)
+  const { error } = await supabase.rpc('bazar_add_to_order', { p_order_id: orderId, p_listing_id: listingId })
+  revalidatePath('/bazar', 'layout')
+  redirect(`/bazar/objednavka/${orderId}${error ? '?pridat=chyba' : '?pridano=1'}`)
+}
+
 export async function cancelOrder(_: FormState, formData: FormData): Promise<FormState> {
   const id = str(formData, 'order_id')
   const reason = str(formData, 'reason').slice(0, 500)

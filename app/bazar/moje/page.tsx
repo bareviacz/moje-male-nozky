@@ -42,12 +42,12 @@ export default async function MinePage({ searchParams }: { searchParams: Promise
     supabase.from('bazar_sellers').select('nickname, is_admin').eq('user_id', user.id).maybeSingle(),
     supabase
       .from('bazar_orders')
-      .select('id, status, pickup_point_name, buyer_name, created_at, bazar_listings(id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position))')
+      .select('id, status, pickup_point_name, buyer_name, created_at, price_czk, bazar_order_items(listing_id), bazar_listings(id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position))')
       .eq('seller_id', user.id)
       .order('created_at', { ascending: false }),
     supabase
       .from('bazar_orders')
-      .select('id, status, pickup_point_name, created_at, bazar_listings(id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position))')
+      .select('id, status, pickup_point_name, created_at, price_czk, bazar_order_items(listing_id), bazar_listings(id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position))')
       .eq('buyer_id', user.id)
       .order('created_at', { ascending: false }),
     supabase
@@ -91,18 +91,19 @@ export default async function MinePage({ searchParams }: { searchParams: Promise
   }
 
   const orderRow = (
-    o: { id: string; status: BazarOrderStatus; pickup_point_name: string; buyer_name?: string; bazar_listings: { brand: string; model: string | null; size_eu: number; price_czk: number; bazar_listing_photos: { storage_path: string; kind: 'celek' | 'podrazka' | 'stelka' | 'detail'; position: number }[] } | null },
+    o: { id: string; status: BazarOrderStatus; pickup_point_name: string; buyer_name?: string; price_czk: number; bazar_order_items: { listing_id: string }[]; bazar_listings: { brand: string; model: string | null; size_eu: number; price_czk: number; bazar_listing_photos: { storage_path: string; kind: 'celek' | 'podrazka' | 'stelka' | 'detail'; position: number }[] } | null },
     todo: boolean,
     who: string,
   ) => {
     const l = o.bazar_listings
+    const extra = (o.bazar_order_items?.length ?? 1) - 1
     return (
       <Link key={o.id} href={`/bazar/objednavka/${o.id}`} className={cx('flex items-center gap-3.5 rounded-[20px] bg-white p-3.5', todo ? 'border-[1.5px] border-sun' : 'border border-line')}>
         <Thumb path={l ? coverPhoto(l.bazar_listing_photos ?? [])?.storage_path : undefined} />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="truncate font-bold">{l ? listingTitle(l) : 'Boty'}</span>
+          <span className="truncate font-bold">{l ? listingTitle(l) : 'Boty'}{extra > 0 && <span className="text-forest"> + {extra} {extra === 1 ? 'další pár' : extra < 5 ? 'další páry' : 'dalších párů'}</span>}</span>
           <span className="text-[13px] text-muted tabular-nums">
-            {l && `EU ${formatEu(l.size_eu)} · ${formatCzk(l.price_czk)} · `}
+            {l && `EU ${formatEu(l.size_eu)}${extra > 0 ? ' …' : ''} · ${formatCzk(o.price_czk)} · `}
             {who}
           </span>
           <span className={cx('self-start rounded-[10px] px-2 py-0.5 text-xs font-bold', todo ? 'bg-sun text-sun-deep' : 'bg-ground ring-1 ring-line')}>

@@ -123,6 +123,15 @@ export type Database = {
           { foreignKeyName: "bazar_messages_sender_id_fkey"; columns: ["sender_id"]; isOneToOne: false; referencedRelation: "bazar_sellers"; referencedColumns: ["user_id"] },
         ]
       }
+      bazar_order_items: {
+        Row: { created_at: string; listing_id: string; order_id: string; price_czk: number }
+        Insert: { created_at?: string; listing_id: string; order_id: string; price_czk: number }
+        Update: { created_at?: string; listing_id?: string; order_id?: string; price_czk?: number }
+        Relationships: [
+          { foreignKeyName: "bazar_order_items_listing_id_fkey"; columns: ["listing_id"]; isOneToOne: false; referencedRelation: "bazar_listings"; referencedColumns: ["id"] },
+          { foreignKeyName: "bazar_order_items_order_id_fkey"; columns: ["order_id"]; isOneToOne: false; referencedRelation: "bazar_orders"; referencedColumns: ["id"] },
+        ]
+      }
       bazar_orders: {
         Row: {
           buyer_email: string
@@ -676,6 +685,7 @@ export type Database = {
       }
     }
     Functions: {
+      bazar_add_to_order: { Args: { p_order_id: string; p_listing_id: string }; Returns: undefined }
       bazar_cancel_order: { Args: { p_order_id: string; p_reason?: string }; Returns: undefined }
       bazar_confirm_received: { Args: { p_order_id: string }; Returns: undefined }
       bazar_create_order: {

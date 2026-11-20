@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { EshopTip } from '@/components/bazar/EshopTip'
 import { notFound } from 'next/navigation'
-import { setListingStatus } from '@/app/bazar/actions'
+import { addToOrder, setListingStatus } from '@/app/bazar/actions'
 import { coverPhoto } from '@/components/bazar/ListingCard'
 import { Gallery } from '@/components/bazar/Gallery'
 import { MessageForm, ReportForm } from '@/components/bazar/SmallForms'
@@ -69,9 +69,21 @@ export default async function ListingPage({
   } = await supabase.auth.getUser()
   const isOwn = user?.id === l.seller_id
 
-  const [{ data: rating }, { data: category }] = await Promise.all([
+  const [{ data: rating }, { data: category }, { data: openOrder }] = await Promise.all([
     supabase.from('bazar_seller_ratings').select('avg_rating, review_count').eq('seller_id', l.seller_id).maybeSingle(),
     supabase.from('shoe_categories').select('name').eq('code', l.category).maybeSingle(),
+    // Rozpracovaná (nezaplacená) rezervace u stejného prodejce → boty jde přidat do ní
+    user && !isOwn && l.status === 'aktivni'
+      ? supabase
+          .from('bazar_orders')
+          .select('id, shipping_method')
+          .eq('buyer_id', user.id)
+          .eq('seller_id', l.seller_id)
+          .eq('status', 'ceka_na_postovne')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ])
 
   // Padnou mým dětem?
@@ -168,7 +180,23 @@ export default async function ListingPage({
                 )}
               </div>
             ) : l.status === 'aktivni' ? (
-              <Link href={`/bazar/${l.id}/koupit`} className={btn.primary}>Koupit</Link>
+              openOrder ? (
+                <div className="flex flex-col gap-2">
+                  <form action={addToOrder}>
+                    <input type="hidden" name="order_id" value={openOrder.id} />
+                    <input type="hidden" name="listing_id" value={l.id} />
+                    <SubmitButton className="w-full" pendingText="Přidávám…">Přidat k mé rezervaci</SubmitButton>
+                  </form>
+                  <p className="text-center text-sm text-muted">
+                    U tohoto prodejce už máte rezervaci. Boty přijdou v jednom balíku{openOrder.shipping_method === 'vlastni_stitek' ? '' : ' a poštovné zaplatíte jen jednou'}.
+                  </p>
+                  <Link href={`/bazar/${l.id}/koupit`} className="text-center text-sm font-bold text-forest underline-offset-2 hover:underline">
+                    Koupit zvlášť
+                  </Link>
+                </div>
+              ) : (
+                <Link href={`/bazar/${l.id}/koupit`} className={btn.primary}>Koupit</Link>
+              )
             ) : (
               <p className="rounded-2xl bg-sun-soft px-4 py-3 text-center font-bold text-sun-deep">
                 {l.status === 'rezervovano' ? 'Rezervováno pro jiného kupujícího' : 'Už prodáno'}

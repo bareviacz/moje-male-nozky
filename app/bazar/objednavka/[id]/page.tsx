@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { confirmReceived } from '@/app/bazar/actions'
+import { addToOrder, confirmReceived } from '@/app/bazar/actions'
 import { coverPhoto } from '@/components/bazar/ListingCard'
 import { PaymentQr } from '@/components/bazar/PaymentQr'
 import { BuyerLabelForm, CancelOrderForm, MessageForm, ReviewForm, ShippedForm } from '@/components/bazar/SmallForms'
@@ -56,8 +56,15 @@ function Steps({ status, steps }: { status: BazarOrderStatus; steps: [BazarOrder
   )
 }
 
-export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function OrderPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ pridano?: string; pridat?: string }>
+}) {
   const { id } = await params
+  const { pridano, pridat } = await searchParams
   if (!isUuid(id)) notFound()
   const supabase = await createClient()
   const {
@@ -68,7 +75,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const { data: o } = await supabase
     .from('bazar_orders')
     .select(
-      'id, status, buyer_id, seller_id, buyer_name, cancelled_by, cancel_reason, tracking_info, price_czk, shipping_czk, shipping_method, buyer_label_code, pickup_point_name, submission_code, packeta_barcode, created_at, listing_id, bazar_listings(id, brand, model, size_eu, inner_length_mm, bazar_listing_photos(storage_path, kind, position))',
+      'id, status, buyer_id, seller_id, buyer_name, cancelled_by, cancel_reason, tracking_info, price_czk, shipping_czk, shipping_method, buyer_label_code, pickup_point_name, submission_code, packeta_barcode, created_at, listing_id, bazar_listings(id, brand, model, size_eu, inner_length_mm, bazar_listing_photos(storage_path, kind, position)), bazar_order_items(listing_id, price_czk, created_at, bazar_listings(id, brand, model, size_eu, bazar_listing_photos(storage_path, kind, position)))',
     )
     .eq('id', id)
     .maybeSingle()
@@ -79,7 +86,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const otherId = isBuyer ? o.seller_id : o.buyer_id
   const l = o.bazar_listings
 
-  const [{ data: other }, { data: pay }, { data: review }, { data: messages }, { data: contacts }] = await Promise.all([
+  const canAdd = isBuyer && o.status === 'ceka_na_postovne'
+  const [{ data: other }, { data: pay }, { data: review }, { data: messages }, { data: contacts }, { data: more }] = await Promise.all([
     supabase.from('bazar_sellers').select('nickname').eq('user_id', otherId).maybeSingle(),
     (isBuyer || isSeller) && o.status !== 'zruseno'
       ? supabase.rpc('bazar_get_payment_details', { p_order_id: o.id })
@@ -94,7 +102,17 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
     o.status !== 'zruseno' && (isBuyer || isSeller)
       ? supabase.rpc('bazar_get_order_contacts', { p_order_id: o.id })
       : Promise.resolve({ data: null }),
+    canAdd
+      ? supabase
+          .from('bazar_listings')
+          .select('id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position)')
+          .eq('seller_id', o.seller_id)
+          .eq('status', 'aktivni')
+          .order('size_eu', { ascending: true })
+          .limit(60)
+      : Promise.resolve({ data: null }),
   ])
+  const items = [...(o.bazar_order_items ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at))
   const contact = (contacts ?? []).find((c) => c.role === (isBuyer ? 'prodejce' : 'kupujici'))
 
   // Zprávy pro mě označit jako přečtené
@@ -105,7 +123,6 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const payment = pay?.[0]
   const iban = payment ? accountToIban(payment.bank_account) : null
   const qr = payment && iban ? spayd({ iban, amount: payment.amount_czk, vs: payment.variable_symbol, message: `Bazarek Barevia ${l ? listingTitle(l) : ''}` }) : null
-  const cover = l ? coverPhoto(l.bazar_listing_photos ?? []) : null
   const ownLabel = o.shipping_method === 'vlastni_stitek'
   const open = ['ceka_na_postovne', 'postovne_zaplaceno', 'k_odeslani'].includes(o.status)
 
@@ -116,27 +133,82 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         {isBuyer ? 'Kupuji' : isSeller ? 'Prodávám' : 'Objednávka'}
       </PageTitle>
 
-      <Card className="flex items-center gap-3.5">
-        {cover && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumbUrl(cover.storage_path)} alt="" className="size-16 rounded-xl object-cover ring-1 ring-line" />
-        )}
-        <div className="flex flex-col">
-          <span className="font-bold">{l ? listingTitle(l) : 'Boty'}</span>
-          <span className="text-sm text-muted tabular-nums">
-            {l && `EU ${formatEu(l.size_eu)} · `}
-            {formatCzk(o.price_czk)}{ownLabel ? ' · vlastní štítek' : o.shipping_czk > 0 ? ` + poštovné ${formatCzk(o.shipping_czk)}` : ''} · {isBuyer ? `od ${other?.nickname ?? 'prodejce'}` : `pro ${o.buyer_name}`}
+      {pridano && <p className="rounded-2xl bg-forest-soft px-4 py-3 text-[15px] font-semibold text-forest">Boty jsme přidali k objednávce. Částka k zaplacení se upravila.</p>}
+      {pridat && <p className="rounded-2xl bg-coral-soft px-4 py-3 text-[15px] font-semibold text-coral-ink">Tyhle boty už přidat nejde, mezitím je asi někdo koupil.</p>}
+
+      <Card className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-3">
+          {(items.length ? items : [{ listing_id: o.listing_id, price_czk: o.price_czk, bazar_listings: l }]).map((it) => {
+            const il = it.bazar_listings
+            const ic = il ? coverPhoto(il.bazar_listing_photos ?? []) : null
+            return (
+              <li key={it.listing_id} className="flex items-center gap-3.5">
+                {ic ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={thumbUrl(ic.storage_path)} alt="" className="size-16 shrink-0 rounded-xl bg-white object-contain ring-1 ring-line" />
+                ) : (
+                  <span className="size-16 shrink-0 rounded-xl bg-ground ring-1 ring-line" />
+                )}
+                <Link href={`/bazar/${it.listing_id}`} className="flex min-w-0 flex-col">
+                  <span className="font-bold">{il ? listingTitle(il) : 'Boty'}</span>
+                  <span className="text-sm text-muted tabular-nums">{il && `EU ${formatEu(il.size_eu)} · `}{formatCzk(it.price_czk)}</span>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+        <div className="flex flex-col gap-0.5 border-t border-line pt-3 text-sm text-muted">
+          <span className="tabular-nums">
+            {items.length > 1 ? `${items.length} ${items.length < 5 ? 'páry' : 'párů'} bot · ` : 'Boty '}
+            {formatCzk(o.price_czk)}{ownLabel ? ' · vlastní štítek' : o.shipping_czk > 0 ? ` + poštovné ${formatCzk(o.shipping_czk)} = ` : ''}
+            {!ownLabel && o.shipping_czk > 0 && <strong className="text-ink">{formatCzk(o.price_czk + o.shipping_czk)}</strong>}
+            {' · '}{isBuyer ? `od ${other?.nickname ?? 'prodejce'}` : `pro ${o.buyer_name}`}
           </span>
           {ownLabel ? (
-            <span className="text-sm text-muted">Doručení: {o.pickup_point_name}</span>
+            <span>Doručení: {o.pickup_point_name}</span>
           ) : (
-            <span className="flex items-start gap-1 text-sm text-muted">
+            <span className="flex items-start gap-1">
               <span className="pt-2">Doručení: {o.pickup_point_name}</span>
               <CopyButton value={(o.pickup_point_name ?? "").replace(/^(Zásilkovna|Balíkovna):\s*/, '')} label="adresu výdejního místa" />
             </span>
           )}
         </div>
       </Card>
+
+      {canAdd && !!more?.length && (
+        <Card className="flex flex-col gap-3 p-5">
+          <div>
+            <h2 className="font-display text-lg font-bold">Přidat další boty od tohoto prodejce</h2>
+            <p className="text-sm text-muted">
+              Pošle vám je v jednom balíku{ownLabel ? '' : ' a poštovné zaplatíte jen jednou'}. Přidávat jde, dokud nezaplatíte.
+            </p>
+          </div>
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {more.map((m) => {
+              const mc = coverPhoto(m.bazar_listing_photos ?? [])
+              return (
+                <li key={m.id} className="flex flex-col gap-1.5 rounded-2xl p-2 ring-1 ring-line">
+                  <Link href={`/bazar/${m.id}`} className="flex flex-col gap-1">
+                    {mc ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={thumbUrl(mc.storage_path)} alt="" className="aspect-square w-full rounded-xl bg-white object-contain" />
+                    ) : (
+                      <span className="aspect-square w-full rounded-xl bg-ground" />
+                    )}
+                    <span className="line-clamp-2 text-sm font-bold leading-snug">{listingTitle(m)}</span>
+                    <span className="text-sm text-muted tabular-nums">EU {formatEu(m.size_eu)} · {formatCzk(m.price_czk)}</span>
+                  </Link>
+                  <form action={addToOrder} className="mt-auto">
+                    <input type="hidden" name="order_id" value={o.id} />
+                    <input type="hidden" name="listing_id" value={m.id} />
+                    <SubmitButton className="w-full !px-3 !py-2 text-sm" pendingText="Přidávám…">Přidat</SubmitButton>
+                  </form>
+                </li>
+              )
+            })}
+          </ul>
+        </Card>
+      )}
 
       {contact && (
         <Card className="flex flex-col gap-1.5 p-5">
