@@ -6,6 +6,7 @@ import { coverPhoto } from '@/components/bazar/ListingCard'
 import { PaymentQr } from '@/components/bazar/PaymentQr'
 import { BuyerLabelForm, CancelOrderForm, MessageForm, ReviewForm, ShippedForm } from '@/components/bazar/SmallForms'
 import { SubmitButton } from '@/components/SubmitButton'
+import { CopyButton } from '@/components/CopyButton'
 import { Card, cx, PageTitle } from '@/components/ui'
 import {
   accountToIban,
@@ -126,21 +127,37 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
             {l && `EU ${formatEu(l.size_eu)} · `}
             {formatCzk(o.price_czk)}{ownLabel ? ' · vlastní štítek' : o.shipping_czk > 0 ? ` + poštovné ${formatCzk(o.shipping_czk)}` : ''} · {isBuyer ? `od ${other?.nickname ?? 'prodejce'}` : `pro ${o.buyer_name}`}
           </span>
-          <span className="text-sm text-muted">Doručení: {o.pickup_point_name}</span>
+          {ownLabel ? (
+            <span className="text-sm text-muted">Doručení: {o.pickup_point_name}</span>
+          ) : (
+            <span className="flex items-start gap-1 text-sm text-muted">
+              <span className="pt-2">Doručení: {o.pickup_point_name}</span>
+              <CopyButton value={(o.pickup_point_name ?? "").replace(/^(Zásilkovna|Balíkovna):\s*/, '')} label="adresu výdejního místa" />
+            </span>
+          )}
         </div>
       </Card>
 
       {contact && (
         <Card className="flex flex-col gap-1.5 p-5">
           <h2 className="font-display text-lg font-bold">{isBuyer ? 'Kontakt na prodejce' : 'Kontakt na kupujícího'}</h2>
-          <p className="text-[15px]">
-            <strong>{isBuyer ? contact.nickname : o.buyer_name}</strong>
-            {!isBuyer && <span className="text-muted"> ({contact.nickname})</span>}
+          <p className="flex items-center gap-1 text-[15px]">
+            <span>
+              <strong>{isBuyer ? contact.nickname : o.buyer_name}</strong>
+              {!isBuyer && <span className="text-muted"> ({contact.nickname})</span>}
+            </span>
+            <CopyButton value={isBuyer ? contact.nickname : o.buyer_name} label="jméno" />
           </p>
-          <p className="flex flex-col gap-0.5 text-[15px]">
-            <a href={`mailto:${contact.email}`} className="font-semibold text-forest underline">{contact.email}</a>
-            {contact.phone && <a href={`tel:${contact.phone.replace(/\s+/g, '')}`} className="font-semibold text-forest underline">{contact.phone}</a>}
+          <p className="flex items-center gap-1 text-[15px]">
+            <a href={`mailto:${contact.email}`} className="min-w-0 font-semibold break-all text-forest underline">{contact.email}</a>
+            <CopyButton value={contact.email} label="e-mail" />
           </p>
+          {contact.phone && (
+            <p className="flex items-center gap-1 text-[15px]">
+              <a href={`tel:${contact.phone.replace(/\s+/g, '')}`} className="font-semibold text-forest underline">{contact.phone}</a>
+              <CopyButton value={contact.phone} label="telefon" />
+            </p>
+          )}
           <p className="text-[13px] text-muted">Domluvit se můžete i přes zprávy níže.</p>
         </Card>
       )}
@@ -186,13 +203,13 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           </p>
           <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             {qr && <PaymentQr text={qr} />}
-            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[15px] tabular-nums">
+            <dl className="grid grid-cols-[auto_1fr] items-center gap-x-3 text-[15px] tabular-nums">
               <dt className="text-muted">Účet</dt>
-              <dd className="font-bold">{payment.bank_account}</dd>
+              <dd className="flex items-center gap-1 font-bold">{payment.bank_account}<CopyButton value={payment.bank_account} label="číslo účtu" /></dd>
               <dt className="text-muted">Částka</dt>
               <dd className="font-bold">{formatCzk(payment.amount_czk)}</dd>
               <dt className="text-muted">VS</dt>
-              <dd className="font-bold">{payment.variable_symbol}</dd>
+              <dd className="flex items-center gap-1 font-bold">{payment.variable_symbol}<CopyButton value={String(payment.variable_symbol)} label="variabilní symbol" /></dd>
             </dl>
           </div>
           <p className="text-sm text-muted">

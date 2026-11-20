@@ -86,3 +86,16 @@ export const CameraIcon = (p: IconProps) => (
 export const EditIcon = (p: IconProps) => (
   <Svg {...p}><path d="M4 20h4L19 9l-4-4L4 16z" /></Svg>
 )
+
+export const CopyIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="9" y="9" width="11" height="11" rx="2" />
+    <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+  </Svg>
+)
+
+export const CheckIcon = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m5 12.5 4.5 4.5L19 7" />
+  </Svg>
+)
