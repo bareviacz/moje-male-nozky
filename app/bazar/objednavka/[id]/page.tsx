@@ -7,6 +7,7 @@ import { PaymentQr } from '@/components/bazar/PaymentQr'
 import { BuyerLabelForm, CancelOrderForm, MessageForm, ReviewForm, ShippedForm } from '@/components/bazar/SmallForms'
 import { SubmitButton } from '@/components/SubmitButton'
 import { CopyButton } from '@/components/CopyButton'
+import { GuestOrder } from '@/components/bazar/GuestOrder'
 import { Card, cx, PageTitle } from '@/components/ui'
 import {
   accountToIban,
@@ -61,16 +62,20 @@ export default async function OrderPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ pridano?: string; pridat?: string }>
+  searchParams: Promise<{ pridano?: string; pridat?: string; t?: string }>
 }) {
   const { id } = await params
-  const { pridano, pridat } = await searchParams
+  const { pridano, pridat, t } = await searchParams
+  const guestToken = t && isUuid(t) ? t : null
   if (!isUuid(id)) notFound()
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect(`/prihlaseni?next=/bazar/objednavka/${id}`)
+  if (!user) {
+    if (guestToken) return <GuestOrder id={id} token={guestToken} />
+    redirect(`/prihlaseni?next=/bazar/objednavka/${id}`)
+  }
 
   const { data: o } = await supabase
     .from('bazar_orders')
@@ -79,11 +84,15 @@ export default async function OrderPage({
     )
     .eq('id', id)
     .maybeSingle()
-  if (!o) notFound()
+  if (!o) {
+    if (guestToken) return <GuestOrder id={id} token={guestToken} />
+    notFound()
+  }
 
   const isBuyer = o.buyer_id === user.id
   const isSeller = o.seller_id === user.id
-  const otherId = isBuyer ? o.seller_id : o.buyer_id
+  const isGuestOrder = !o.buyer_id
+  const otherId = (isBuyer ? o.seller_id : o.buyer_id) ?? o.seller_id
   const l = o.bazar_listings
 
   const paid = !!o.paid_at
@@ -368,7 +377,7 @@ export default async function OrderPage({
         </Card>
       )}
 
-      {(isBuyer || isSeller) && (
+      {(isBuyer || isSeller) && !isGuestOrder && (
         <Card className="flex flex-col gap-3 p-5">
           <h2 className="font-display text-lg font-bold">Zprávy</h2>
           {messages?.length ? (

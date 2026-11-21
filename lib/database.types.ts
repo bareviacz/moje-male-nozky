@@ -148,6 +148,7 @@ export type Database = {
           packeta_barcode: string | null
           paid_amount: number | null
           paid_at: string | null
+          guest_token: string | null
           packeta_packet_id: string | null
           pickup_point_id: string
           pickup_point_name: string
@@ -175,6 +176,7 @@ export type Database = {
           packeta_barcode?: string | null
           paid_amount?: number | null
           paid_at?: string | null
+          guest_token?: string | null
           packeta_packet_id?: string | null
           pickup_point_id: string
           pickup_point_name: string
@@ -189,7 +191,7 @@ export type Database = {
         }
         Update: {
           buyer_email?: string
-          buyer_id?: string
+          buyer_id?: string | null
           buyer_label_code?: string | null
           buyer_name?: string
           buyer_phone?: string | null
@@ -202,6 +204,7 @@ export type Database = {
           packeta_barcode?: string | null
           paid_amount?: number | null
           paid_at?: string | null
+          guest_token?: string | null
           packeta_packet_id?: string | null
           pickup_point_id?: string
           pickup_point_name?: string
@@ -704,6 +707,19 @@ export type Database = {
         }
         Returns: string
       }
+      bazar_create_guest_order: {
+        Args: {
+          p_listing_ids: string[]
+          p_pickup_point_id: string
+          p_pickup_point_name: string
+          p_buyer_name: string
+          p_buyer_email: string
+          p_buyer_phone?: string
+          p_shipping_method?: string
+        }
+        Returns: Json
+      }
+      bazar_guest_order: { Args: { p_order_id: string; p_token: string }; Returns: Json }
       bazar_cancel_order: { Args: { p_order_id: string; p_reason?: string }; Returns: undefined }
       bazar_confirm_received: { Args: { p_order_id: string }; Returns: undefined }
       bazar_create_order: {

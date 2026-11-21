@@ -196,7 +196,12 @@ export default async function ListingPage({
                   </Link>
                 </div>
               ) : (
-                <Link href={`/bazar/${l.id}/koupit`} className={btn.primary}>Koupit</Link>
+                <div className="flex flex-col gap-1.5">
+                  <Link href={`/bazar/${l.id}/koupit`} className={btn.primary}>Koupit</Link>
+                  {!user && seller?.is_barevia && (
+                    <p className="text-center text-sm text-muted">Od Barevie koupíte i bez registrace.</p>
+                  )}
+                </div>
               )
             ) : (
               <p className="rounded-2xl bg-sun-soft px-4 py-3 text-center font-bold text-sun-deep">

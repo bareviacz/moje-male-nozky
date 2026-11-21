@@ -2,7 +2,7 @@
 
 import Script from 'next/script'
 import { useActionState, useState } from 'react'
-import { createOrder } from '@/app/bazar/actions'
+import { createGuestOrder, createOrder } from '@/app/bazar/actions'
 import { BAZAR_SHIPPING_CZK, formatCzk } from '@/lib/bazar'
 import { BAZAR_TERMS_PATH, ESHOP_TERMS_URL } from '@/lib/config'
 import type { FormState } from '@/lib/forms'
@@ -29,7 +29,11 @@ export function BuyForm({
   defaultEmail,
   sellerIsBarevia = false,
   extras = [],
+  guest = false,
+  loginHref,
 }: {
+  guest?: boolean
+  loginHref?: string
   extras?: { id: string; title: string; size: number; price: number; photo: string | null }[]
   listingId: string
   price: number
@@ -37,7 +41,7 @@ export function BuyForm({
   defaultEmail: string
   sellerIsBarevia?: boolean
 }) {
-  const [state, action] = useActionState<FormState, FormData>(createOrder, undefined)
+  const [state, action] = useActionState<FormState, FormData>(guest ? createGuestOrder : createOrder, undefined)
   const [picked, setPicked] = useState<string[]>([])
   const [showAll, setShowAll] = useState(false)
   const toggle = (id: string) =>
@@ -73,6 +77,12 @@ export function BuyForm({
   return (
     <form action={action} className="flex flex-col gap-4">
       <input type="hidden" name="listing_id" value={listingId} />
+      {guest && (
+        <p className="rounded-2xl bg-sun-soft px-4 py-3 text-sm leading-relaxed text-sun-ink">
+          <strong>Nakupujete bez registrace.</strong> Odkaz na objednávku a QR platbu vám pošleme e-mailem. Nezaplacená rezervace se po 3 dnech
+          sama zruší.{loginHref && (<> Máte účet? <a href={loginHref} className="font-bold underline">Přihlaste se</a>.</>)}
+        </p>
+      )}
       {picked.map((id) => (
         <input key={id} type="hidden" name="extra" value={id} />
       ))}
@@ -246,6 +256,16 @@ export function BuyForm({
         )}
       </p>
 
+      {guest && (
+        <label className="flex items-start gap-2.5 text-sm">
+          <input type="checkbox" name="terms_guest" required className="mt-0.5 size-5 shrink-0 accent-forest" />
+          <span>
+            Souhlasím s{' '}
+            <a href={ESHOP_TERMS_URL} target="_blank" rel="noopener" className="font-bold text-forest underline">obchodními podmínkami</a>{' '}
+            a se zpracováním osobních údajů pro vyřízení objednávky.
+          </span>
+        </label>
+      )}
       <FormMessage error={state?.error} />
       <SubmitButton pendingText="Rezervuji…">{pairs > 1 ? `Rezervovat ${pairs} ${pairs < 5 ? 'páry' : 'párů'} bot` : 'Rezervovat boty'}</SubmitButton>
     </form>

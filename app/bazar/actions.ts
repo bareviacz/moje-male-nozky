@@ -325,6 +325,52 @@ export async function createOrder(_: FormState, formData: FormData): Promise<For
   redirect(`/bazar/objednavka/${data}`)
 }
 
+export async function createGuestOrder(_: FormState, formData: FormData): Promise<FormState> {
+  const listingId = str(formData, 'listing_id')
+  let pointId = str(formData, 'pickup_point_id')
+  let pointName = str(formData, 'pickup_point_name')
+  const name = str(formData, 'buyer_name')
+  const email = str(formData, 'buyer_email')
+  const phone = str(formData, 'buyer_phone') || undefined
+  const method = str(formData, 'shipping_method') === 'vlastni_stitek' ? 'vlastni_stitek' : 'postovne'
+  if (!isUuid(listingId)) return fail(formData, dbErrorCs())
+  if (method === 'vlastni_stitek') {
+    pointId = 'vlastni_stitek'
+    pointName = 'Vlastní štítek kupujícího'
+  }
+  if (!pointName || pointName.length > 200) return fail(formData, 'Vyberte výdejní místo, Z-BOX nebo Balíkovnu.')
+  if (name.length < 2 || name.length > 100) return fail(formData, 'Vyplňte jméno a příjmení.')
+  if (!EMAIL_RE.test(email)) return fail(formData, 'Zadejte platný e-mail.')
+  if (phone && phone.length > 20) return fail(formData, 'Telefon je moc dlouhý.')
+  if (formData.get('terms_guest') !== 'on') return fail(formData, 'Potvrďte prosím souhlas s podmínkami.')
+  const extras = formData
+    .getAll('extra')
+    .map(String)
+    .filter((x) => isUuid(x) && x !== listingId)
+    .slice(0, 9)
+
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc('bazar_create_guest_order', {
+    p_listing_ids: [listingId, ...extras],
+    p_pickup_point_id: (pointId || pointName).slice(0, 100),
+    p_pickup_point_name: pointName,
+    p_buyer_name: name,
+    p_buyer_email: email,
+    p_buyer_phone: phone,
+    p_shipping_method: method,
+  })
+  const res = data as { id?: string; token?: string } | null
+  if (error || !res?.id || !res.token) {
+    const msg = error?.message ?? ''
+    if (msg.includes('není k dispozici'))
+      return fail(formData, extras.length ? 'Některé z vybraných bot už mezitím někdo koupil. Obnovte stránku a vyberte znovu.' : 'Boty už mezitím někdo koupil.')
+    if (msg.includes('nezaplacené rezervace')) return fail(formData, 'Na tento e-mail už čekají nezaplacené rezervace. Nejdřív je prosím zaplaťte.')
+    return fail(formData, dbErrorCs())
+  }
+  revalidatePath('/bazar', 'layout')
+  redirect(`/bazar/objednavka/${res.id}?t=${res.token}`)
+}
+
 export async function addToOrder(formData: FormData) {
   const orderId = str(formData, 'order_id')
   const listingId = str(formData, 'listing_id')

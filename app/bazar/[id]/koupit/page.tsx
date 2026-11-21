@@ -18,7 +18,7 @@ export default async function BuyPage({ params }: { params: Promise<{ id: string
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect(`/prihlaseni?next=/bazar/${id}/koupit`)
+  const loginHref = `/prihlaseni?next=/bazar/${id}/koupit`
 
   const [{ data: l }, { data: me }, { data: profile }] = await Promise.all([
     supabase
@@ -26,11 +26,14 @@ export default async function BuyPage({ params }: { params: Promise<{ id: string
       .select('id, brand, model, size_eu, inner_length_mm, price_czk, status, seller_id, bazar_sellers!inner(is_barevia), bazar_listing_photos(storage_path, kind, position)')
       .eq('id', id)
       .maybeSingle(),
-    supabase.from('bazar_sellers').select('nickname').eq('user_id', user.id).maybeSingle(),
-    supabase.from('profiles').select('display_name').eq('id', user.id).maybeSingle(),
+    user ? supabase.from('bazar_sellers').select('nickname').eq('user_id', user.id).maybeSingle() : Promise.resolve({ data: null }),
+    user ? supabase.from('profiles').select('display_name').eq('id', user.id).maybeSingle() : Promise.resolve({ data: null }),
   ])
   if (!l) notFound()
-  if (l.status !== 'aktivni' || l.seller_id === user.id) redirect(`/bazar/${id}`)
+  const isBarevia = l.bazar_sellers?.is_barevia ?? false
+  // Bez přihlášení jde koupit jen od Barevie
+  if (!user && !isBarevia) redirect(loginHref)
+  if (l.status !== 'aktivni' || l.seller_id === user?.id) redirect(`/bazar/${id}`)
 
   // Další boty od stejného prodejce, nejdřív podobné velikosti
   const { data: others } = await supabase
@@ -69,7 +72,9 @@ export default async function BuyPage({ params }: { params: Promise<{ id: string
         </div>
       </Card>
 
-      {me ? (
+      {!user ? (
+        <BuyForm listingId={l.id} price={l.price_czk} extras={extras} sellerIsBarevia guest loginHref={loginHref} defaultName="" defaultEmail="" />
+      ) : me ? (
         <BuyForm listingId={l.id} price={l.price_czk} extras={extras} sellerIsBarevia={l.bazar_sellers?.is_barevia ?? false} defaultName={profile?.display_name ?? ''} defaultEmail={user.email ?? ''} />
       ) : (
         <Card className="flex flex-col gap-4 p-5">
