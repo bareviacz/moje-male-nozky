@@ -39,7 +39,7 @@ export default async function MinePage({ searchParams }: { searchParams: Promise
   if (!user) redirect('/prihlaseni?next=/bazar/moje')
 
   const [{ data: me }, { data: sales }, { data: buys }, { data: mine }, { count: unread }] = await Promise.all([
-    supabase.from('bazar_sellers').select('nickname, is_admin').eq('user_id', user.id).maybeSingle(),
+    supabase.from('bazar_sellers').select('nickname, is_admin, is_barevia').eq('user_id', user.id).maybeSingle(),
     supabase
       .from('bazar_orders')
       .select('id, status, pickup_point_name, buyer_name, created_at, price_czk, paid_at, bazar_order_items(listing_id), bazar_listings!bazar_orders_listing_id_fkey(id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position))')
@@ -106,8 +106,23 @@ export default async function MinePage({ searchParams }: { searchParams: Promise
             {l && `EU ${formatEu(l.size_eu)}${extra > 0 ? ' …' : ''} · ${formatCzk(o.price_czk)} · `}
             {who}
           </span>
-          <span className={cx('self-start rounded-[10px] px-2 py-0.5 text-xs font-bold', todo ? 'bg-sun text-sun-deep' : 'bg-ground ring-1 ring-line')}>
-            {todo ? (who.startsWith('pro ') ? (o.paid_at ? 'Zaplaceno · pošlete boty' : 'Pošlete boty') : (o.paid_at ? 'Zaplaceno · čeká na odeslání' : 'Zaplaťte prodejci')) : ORDER_STATUS_LABEL[o.status]}
+          <span className="flex flex-wrap gap-1.5">
+            <span className={cx('rounded-[10px] px-2 py-0.5 text-xs font-bold', todo ? 'bg-sun text-sun-deep' : 'bg-ground ring-1 ring-line')}>
+              {todo
+                ? who.startsWith('pro ')
+                  ? o.paid_at
+                    ? 'Zaplaceno · pošlete boty'
+                    : me?.is_barevia
+                      ? 'Čeká na platbu'
+                      : 'Pošlete boty'
+                  : o.paid_at
+                    ? 'Zaplaceno · čeká na odeslání'
+                    : 'Zaplaťte prodejci'
+                : ORDER_STATUS_LABEL[o.status]}
+            </span>
+            {o.paid_at && !todo && o.status !== 'zruseno' && (
+              <span className="rounded-[10px] bg-forest px-2 py-0.5 text-xs font-bold text-white">✓ Zaplaceno</span>
+            )}
           </span>
         </div>
       </Link>
