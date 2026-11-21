@@ -32,6 +32,24 @@ export default async function BuyPage({ params }: { params: Promise<{ id: string
   if (!l) notFound()
   if (l.status !== 'aktivni' || l.seller_id === user.id) redirect(`/bazar/${id}`)
 
+  // Další boty od stejného prodejce, nejdřív podobné velikosti
+  const { data: others } = await supabase
+    .from('bazar_listings')
+    .select('id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position)')
+    .eq('seller_id', l.seller_id)
+    .eq('status', 'aktivni')
+    .neq('id', l.id)
+    .limit(120)
+  const extras = (others ?? [])
+    .map((o) => ({
+      id: o.id,
+      title: listingTitle(o),
+      size: Number(o.size_eu),
+      price: o.price_czk,
+      photo: coverPhoto(o.bazar_listing_photos ?? [])?.storage_path ? thumbUrl(coverPhoto(o.bazar_listing_photos ?? [])!.storage_path) : null,
+    }))
+    .sort((a, b) => Math.abs(a.size - Number(l.size_eu)) - Math.abs(b.size - Number(l.size_eu)) || a.price - b.price)
+
   const cover = coverPhoto(l.bazar_listing_photos ?? [])
 
   return (
@@ -52,7 +70,7 @@ export default async function BuyPage({ params }: { params: Promise<{ id: string
       </Card>
 
       {me ? (
-        <BuyForm listingId={l.id} price={l.price_czk} sellerIsBarevia={l.bazar_sellers?.is_barevia ?? false} defaultName={profile?.display_name ?? ''} defaultEmail={user.email ?? ''} />
+        <BuyForm listingId={l.id} price={l.price_czk} extras={extras} sellerIsBarevia={l.bazar_sellers?.is_barevia ?? false} defaultName={profile?.display_name ?? ''} defaultEmail={user.email ?? ''} />
       ) : (
         <Card className="flex flex-col gap-4 p-5">
           <p className="text-[15px] leading-relaxed">

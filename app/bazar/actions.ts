@@ -298,8 +298,13 @@ export async function createOrder(_: FormState, formData: FormData): Promise<For
   if (phone && phone.length > 20) return fail(formData, 'Telefon je moc dlouhý.')
 
   const { supabase } = await requireBazarUser(`/bazar/${listingId}/koupit`)
-  const { data, error } = await supabase.rpc('bazar_create_order', {
-    p_listing_id: listingId,
+  const extras = formData
+    .getAll('extra')
+    .map(String)
+    .filter((x) => isUuid(x) && x !== listingId)
+    .slice(0, 9)
+  const { data, error } = await supabase.rpc('bazar_create_order_multi', {
+    p_listing_ids: [listingId, ...extras],
     p_pickup_point_id: (pointId || pointName).slice(0, 100),
     p_pickup_point_name: pointName,
     p_buyer_name: name,
@@ -309,7 +314,8 @@ export async function createOrder(_: FormState, formData: FormData): Promise<For
   })
   if (error || !data) {
     const msg = error?.message ?? ''
-    if (msg.includes('není k dispozici')) return fail(formData, 'Boty už mezitím někdo koupil nebo je prodejce stáhl.')
+    if (msg.includes('není k dispozici'))
+      return fail(formData, extras.length ? 'Některé z vybraných bot už mezitím někdo koupil. Obnovte stránku a vyberte znovu.' : 'Boty už mezitím někdo koupil nebo je prodejce stáhl.')
     if (msg.includes('Vlastní')) return fail(formData, 'Vlastní boty si koupit nemůžete.')
     if (msg.includes('přezdívku')) return fail(formData, 'Nejdřív si nastavte přezdívku v bazaru.')
     return fail(formData, dbErrorCs())

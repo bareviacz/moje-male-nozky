@@ -692,6 +692,18 @@ export type Database = {
     }
     Functions: {
       bazar_add_to_order: { Args: { p_order_id: string; p_listing_id: string }; Returns: undefined }
+      bazar_create_order_multi: {
+        Args: {
+          p_listing_ids: string[]
+          p_pickup_point_id: string
+          p_pickup_point_name: string
+          p_buyer_name: string
+          p_buyer_email: string
+          p_buyer_phone?: string
+          p_shipping_method?: string
+        }
+        Returns: string
+      }
       bazar_cancel_order: { Args: { p_order_id: string; p_reason?: string }; Returns: undefined }
       bazar_confirm_received: { Args: { p_order_id: string }; Returns: undefined }
       bazar_create_order: {

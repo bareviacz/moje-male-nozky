@@ -28,7 +28,9 @@ export function BuyForm({
   defaultName,
   defaultEmail,
   sellerIsBarevia = false,
+  extras = [],
 }: {
+  extras?: { id: string; title: string; size: number; price: number; photo: string | null }[]
   listingId: string
   price: number
   defaultName: string
@@ -36,6 +38,13 @@ export function BuyForm({
   sellerIsBarevia?: boolean
 }) {
   const [state, action] = useActionState<FormState, FormData>(createOrder, undefined)
+  const [picked, setPicked] = useState<string[]>([])
+  const [showAll, setShowAll] = useState(false)
+  const toggle = (id: string) =>
+    setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length >= 9 ? p : [...p, id]))
+  const pickedPrice = extras.filter((e) => picked.includes(e.id)).reduce((s, e) => s + e.price, 0)
+  const pairs = 1 + picked.length
+  const shown = showAll ? extras : extras.slice(0, 6)
   const v = state?.values
   const [method, setMethod] = useState<'postovne' | 'vlastni_stitek'>(v?.shipping_method === 'vlastni_stitek' ? 'vlastni_stitek' : 'postovne')
   const shipping = method === 'postovne' ? BAZAR_SHIPPING_CZK : 0
@@ -64,6 +73,51 @@ export function BuyForm({
   return (
     <form action={action} className="flex flex-col gap-4">
       <input type="hidden" name="listing_id" value={listingId} />
+      {picked.map((id) => (
+        <input key={id} type="hidden" name="extra" value={id} />
+      ))}
+
+      {extras.length > 0 && (
+        <fieldset className="flex flex-col gap-3 rounded-2xl bg-white p-4 ring-1 ring-line">
+          <legend className="sr-only">Další boty od prodejce</legend>
+          <div>
+            <p className="font-bold">Přidat další boty od tohoto prodejce</p>
+            <p className="text-sm text-muted">
+              Přijdou v jednom balíku{method === 'postovne' ? ' a poštovné zaplatíte jen jednou' : ''}. Stačí zaškrtnout.
+            </p>
+          </div>
+          <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+            {shown.map((e) => {
+              const on = picked.includes(e.id)
+              return (
+                <li key={e.id}>
+                  <button
+                    type="button"
+                    onClick={() => toggle(e.id)}
+                    aria-pressed={on}
+                    className={cx('relative flex w-full flex-col gap-1 rounded-xl p-2 text-left ring-1 transition', on ? 'bg-forest-soft ring-2 ring-forest' : 'bg-white ring-line hover:ring-forest/40')}
+                  >
+                    <span className={cx('absolute top-3 right-3 flex size-6 items-center justify-center rounded-full text-sm font-bold', on ? 'bg-forest text-white' : 'bg-white text-transparent ring-1 ring-line')}>✓</span>
+                    {e.photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={e.photo} alt="" className="aspect-square w-full rounded-lg bg-white object-contain" />
+                    ) : (
+                      <span className="aspect-square w-full rounded-lg bg-ground" />
+                    )}
+                    <span className="line-clamp-2 text-[13px] font-bold leading-snug">{e.title}</span>
+                    <span className="text-[13px] text-muted tabular-nums">EU {String(e.size).replace('.', ',')} · {formatCzk(e.price)}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+          {extras.length > 6 && (
+            <button type="button" onClick={() => setShowAll((s) => !s)} className="self-start text-sm font-bold text-forest">
+              {showAll ? 'Zobrazit méně' : `Zobrazit všechny (${extras.length})`}
+            </button>
+          )}
+        </fieldset>
+      )}
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-bold">Doprava</legend>
@@ -158,8 +212,8 @@ export function BuyForm({
 
       <dl className="flex flex-col gap-1.5 rounded-2xl bg-white p-4 text-[15px] ring-1 ring-line tabular-nums">
         <div className="flex justify-between gap-3">
-          <dt>Boty</dt>
-          <dd>{formatCzk(price)}</dd>
+          <dt>{pairs > 1 ? `Boty (${pairs} ${pairs < 5 ? 'páry' : 'párů'})` : 'Boty'}</dt>
+          <dd>{formatCzk(price + pickedPrice)}</dd>
         </div>
         <div className="flex justify-between gap-3">
           <dt>Poštovné</dt>
@@ -167,7 +221,7 @@ export function BuyForm({
         </div>
         <div className="flex justify-between gap-3 border-t border-line pt-1.5">
           <dt className="font-bold">Celkem, platíte QR platbou prodejci</dt>
-          <dd className="font-bold">{formatCzk(price + shipping)}</dd>
+          <dd className="font-bold">{formatCzk(price + pickedPrice + shipping)}</dd>
         </div>
       </dl>
       <p className="text-[13px] leading-relaxed text-muted">
@@ -193,7 +247,7 @@ export function BuyForm({
       </p>
 
       <FormMessage error={state?.error} />
-      <SubmitButton pendingText="Rezervuji…">Rezervovat boty</SubmitButton>
+      <SubmitButton pendingText="Rezervuji…">{pairs > 1 ? `Rezervovat ${pairs} ${pairs < 5 ? 'páry' : 'párů'} bot` : 'Rezervovat boty'}</SubmitButton>
     </form>
   )
 }
