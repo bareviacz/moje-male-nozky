@@ -75,7 +75,7 @@ export default async function OrderPage({
   const { data: o } = await supabase
     .from('bazar_orders')
     .select(
-      'id, status, buyer_id, seller_id, buyer_name, cancelled_by, cancel_reason, tracking_info, price_czk, shipping_czk, shipping_method, buyer_label_code, pickup_point_name, submission_code, packeta_barcode, created_at, listing_id, bazar_listings!bazar_orders_listing_id_fkey(id, brand, model, size_eu, inner_length_mm, bazar_listing_photos(storage_path, kind, position)), bazar_order_items(listing_id, price_czk, created_at, bazar_listings(id, brand, model, size_eu, bazar_listing_photos(storage_path, kind, position)))',
+      'id, status, buyer_id, seller_id, buyer_name, cancelled_by, cancel_reason, tracking_info, price_czk, shipping_czk, shipping_method, buyer_label_code, pickup_point_name, submission_code, packeta_barcode, paid_at, paid_amount, created_at, listing_id, bazar_listings!bazar_orders_listing_id_fkey(id, brand, model, size_eu, inner_length_mm, bazar_listing_photos(storage_path, kind, position)), bazar_order_items(listing_id, price_czk, created_at, bazar_listings(id, brand, model, size_eu, bazar_listing_photos(storage_path, kind, position)))',
     )
     .eq('id', id)
     .maybeSingle()
@@ -86,7 +86,8 @@ export default async function OrderPage({
   const otherId = isBuyer ? o.seller_id : o.buyer_id
   const l = o.bazar_listings
 
-  const canAdd = isBuyer && o.status === 'ceka_na_postovne'
+  const paid = !!o.paid_at
+  const canAdd = isBuyer && o.status === 'ceka_na_postovne' && !paid
   const [{ data: other }, { data: pay }, { data: review }, { data: messages }, { data: contacts }, { data: more }] = await Promise.all([
     supabase.from('bazar_sellers').select('nickname').eq('user_id', otherId).maybeSingle(),
     (isBuyer || isSeller) && o.status !== 'zruseno'
@@ -245,7 +246,13 @@ export default async function OrderPage({
       )}
 
       {/* ---------- Kupující ---------- */}
-      {isBuyer && o.status === 'ceka_na_postovne' && (
+      {paid && o.status !== 'zruseno' && ['ceka_na_postovne', 'postovne_zaplaceno', 'k_odeslani'].includes(o.status) && (
+        <p className="rounded-2xl bg-forest px-4 py-3 text-[15px] font-semibold text-white">
+          ✓ Zaplaceno {formatDate(o.paid_at!.slice(0, 10))}{o.paid_amount ? ` (${formatCzk(o.paid_amount)})` : ''}.{' '}
+          {isBuyer ? 'Platba dorazila, boty brzy odešleme.' : 'Platba dorazila na účet, můžete poslat boty.'}
+        </p>
+      )}
+      {isBuyer && o.status === 'ceka_na_postovne' && !paid && (
         <p className="rounded-2xl bg-forest-soft px-4 py-3 text-[15px] font-semibold text-forest">
           Boty máte rezervované. Zaplaťte prodejci QR kódem níže{ownLabel ? '.' : ', částka už obsahuje poštovné.'}
         </p>
@@ -266,7 +273,7 @@ export default async function OrderPage({
         </p>
       )}
 
-      {payment && (isBuyer || isSeller) && ['ceka_na_postovne', 'postovne_zaplaceno', 'k_odeslani'].includes(o.status) && (
+      {payment && !paid && (isBuyer || isSeller) && ['ceka_na_postovne', 'postovne_zaplaceno', 'k_odeslani'].includes(o.status) && (
         <Card className="flex flex-col gap-4 p-5">
           <p className="font-bold">
             {isBuyer
@@ -307,7 +314,7 @@ export default async function OrderPage({
       {isSeller && ['ceka_na_postovne', 'postovne_zaplaceno', 'k_odeslani'].includes(o.status) && (
         <Card className="flex flex-col gap-3 border-[1.5px] border-sun p-5">
           <p className="font-bold">
-            {ownLabel && !o.buyer_label_code ? 'Čeká se na podací kód od kupujícího. ' : ''}Až vám přijde {formatCzk(o.price_czk + o.shipping_czk)}
+            {ownLabel && !o.buyer_label_code ? 'Čeká se na podací kód od kupujícího. ' : ''}{paid ? 'Platba dorazila. ' : ''}Až vám přijde {formatCzk(o.price_czk + o.shipping_czk)}
             {o.shipping_czk > 0 && <span className="font-normal"> ({formatCzk(o.price_czk)} za boty + {formatCzk(o.shipping_czk)} poštovné)</span>}, pošlete boty a označte je jako odeslané.
           </p>
           {ownLabel ? (

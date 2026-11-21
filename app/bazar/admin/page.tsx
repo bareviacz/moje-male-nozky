@@ -22,7 +22,7 @@ export default async function AdminPage() {
   const [{ data: orders }, { data: reports }] = await Promise.all([
     supabase
       .from('bazar_orders')
-      .select('id, status, buyer_name, buyer_email, buyer_phone, pickup_point_name, pickup_point_id, price_czk, shipping_czk, submission_code, packeta_barcode, created_at, bazar_listings!bazar_orders_listing_id_fkey(id, brand, model)')
+      .select('id, status, buyer_name, buyer_email, buyer_phone, pickup_point_name, pickup_point_id, price_czk, shipping_czk, submission_code, packeta_barcode, paid_at, paid_amount, created_at, bazar_listings!bazar_orders_listing_id_fkey(id, brand, model)')
       .neq('status', 'dokonceno')
       .neq('status', 'zruseno')
       .order('created_at', { ascending: true }),
@@ -49,7 +49,7 @@ export default async function AdminPage() {
               <Link href={`/bazar/objednavka/${o.id}`} className="font-bold text-forest">
                 {o.bazar_listings ? listingTitle(o.bazar_listings) : 'Boty'}
               </Link>
-              <span className="text-sm text-muted">{formatDate(o.created_at.slice(0, 10))} · {ORDER_STATUS_LABEL[o.status]}</span>
+              <span className="text-sm text-muted">{formatDate(o.created_at.slice(0, 10))} · {ORDER_STATUS_LABEL[o.status]}{o.paid_at ? ` · ✓ zaplaceno ${o.paid_amount ?? ''} Kč` : ''}</span>
             </div>
             <p className="text-sm leading-relaxed tabular-nums">
               {o.buyer_name} · {o.buyer_email}

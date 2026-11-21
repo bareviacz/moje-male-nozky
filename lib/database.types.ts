@@ -146,6 +146,8 @@ export type Database = {
           id: string
           listing_id: string
           packeta_barcode: string | null
+          paid_amount: number | null
+          paid_at: string | null
           packeta_packet_id: string | null
           pickup_point_id: string
           pickup_point_name: string
@@ -171,6 +173,8 @@ export type Database = {
           id?: string
           listing_id: string
           packeta_barcode?: string | null
+          paid_amount?: number | null
+          paid_at?: string | null
           packeta_packet_id?: string | null
           pickup_point_id: string
           pickup_point_name: string
@@ -196,6 +200,8 @@ export type Database = {
           id?: string
           listing_id?: string
           packeta_barcode?: string | null
+          paid_amount?: number | null
+          paid_at?: string | null
           packeta_packet_id?: string | null
           pickup_point_id?: string
           pickup_point_name?: string

@@ -42,12 +42,12 @@ export default async function MinePage({ searchParams }: { searchParams: Promise
     supabase.from('bazar_sellers').select('nickname, is_admin').eq('user_id', user.id).maybeSingle(),
     supabase
       .from('bazar_orders')
-      .select('id, status, pickup_point_name, buyer_name, created_at, price_czk, bazar_order_items(listing_id), bazar_listings!bazar_orders_listing_id_fkey(id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position))')
+      .select('id, status, pickup_point_name, buyer_name, created_at, price_czk, paid_at, bazar_order_items(listing_id), bazar_listings!bazar_orders_listing_id_fkey(id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position))')
       .eq('seller_id', user.id)
       .order('created_at', { ascending: false }),
     supabase
       .from('bazar_orders')
-      .select('id, status, pickup_point_name, created_at, price_czk, bazar_order_items(listing_id), bazar_listings!bazar_orders_listing_id_fkey(id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position))')
+      .select('id, status, pickup_point_name, created_at, price_czk, paid_at, bazar_order_items(listing_id), bazar_listings!bazar_orders_listing_id_fkey(id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position))')
       .eq('buyer_id', user.id)
       .order('created_at', { ascending: false }),
     supabase
@@ -91,7 +91,7 @@ export default async function MinePage({ searchParams }: { searchParams: Promise
   }
 
   const orderRow = (
-    o: { id: string; status: BazarOrderStatus; pickup_point_name: string; buyer_name?: string; price_czk: number; bazar_order_items: { listing_id: string }[]; bazar_listings: { brand: string; model: string | null; size_eu: number; price_czk: number; bazar_listing_photos: { storage_path: string; kind: 'celek' | 'podrazka' | 'stelka' | 'detail'; position: number }[] } | null },
+    o: { id: string; status: BazarOrderStatus; pickup_point_name: string; buyer_name?: string; price_czk: number; paid_at: string | null; bazar_order_items: { listing_id: string }[]; bazar_listings: { brand: string; model: string | null; size_eu: number; price_czk: number; bazar_listing_photos: { storage_path: string; kind: 'celek' | 'podrazka' | 'stelka' | 'detail'; position: number }[] } | null },
     todo: boolean,
     who: string,
   ) => {
@@ -107,7 +107,7 @@ export default async function MinePage({ searchParams }: { searchParams: Promise
             {who}
           </span>
           <span className={cx('self-start rounded-[10px] px-2 py-0.5 text-xs font-bold', todo ? 'bg-sun text-sun-deep' : 'bg-ground ring-1 ring-line')}>
-            {todo ? (who.startsWith('pro ') ? 'Pošlete boty' : 'Zaplaťte prodejci') : ORDER_STATUS_LABEL[o.status]}
+            {todo ? (who.startsWith('pro ') ? (o.paid_at ? 'Zaplaceno · pošlete boty' : 'Pošlete boty') : (o.paid_at ? 'Zaplaceno · čeká na odeslání' : 'Zaplaťte prodejci')) : ORDER_STATUS_LABEL[o.status]}
           </span>
         </div>
       </Link>

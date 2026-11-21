@@ -80,6 +80,7 @@ export default async function ListingPage({
           .eq('buyer_id', user.id)
           .eq('seller_id', l.seller_id)
           .eq('status', 'ceka_na_postovne')
+          .is('paid_at', null)
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle()
