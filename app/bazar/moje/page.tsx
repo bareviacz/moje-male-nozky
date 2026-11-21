@@ -42,12 +42,12 @@ export default async function MinePage({ searchParams }: { searchParams: Promise
     supabase.from('bazar_sellers').select('nickname, is_admin').eq('user_id', user.id).maybeSingle(),
     supabase
       .from('bazar_orders')
-      .select('id, status, pickup_point_name, buyer_name, created_at, price_czk, bazar_order_items(listing_id), bazar_listings(id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position))')
+      .select('id, status, pickup_point_name, buyer_name, created_at, price_czk, bazar_order_items(listing_id), bazar_listings!bazar_orders_listing_id_fkey(id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position))')
       .eq('seller_id', user.id)
       .order('created_at', { ascending: false }),
     supabase
       .from('bazar_orders')
-      .select('id, status, pickup_point_name, created_at, price_czk, bazar_order_items(listing_id), bazar_listings(id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position))')
+      .select('id, status, pickup_point_name, created_at, price_czk, bazar_order_items(listing_id), bazar_listings!bazar_orders_listing_id_fkey(id, brand, model, size_eu, price_czk, bazar_listing_photos(storage_path, kind, position))')
       .eq('buyer_id', user.id)
       .order('created_at', { ascending: false }),
     supabase

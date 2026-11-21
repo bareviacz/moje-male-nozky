@@ -75,7 +75,7 @@ export default async function OrderPage({
   const { data: o } = await supabase
     .from('bazar_orders')
     .select(
-      'id, status, buyer_id, seller_id, buyer_name, cancelled_by, cancel_reason, tracking_info, price_czk, shipping_czk, shipping_method, buyer_label_code, pickup_point_name, submission_code, packeta_barcode, created_at, listing_id, bazar_listings(id, brand, model, size_eu, inner_length_mm, bazar_listing_photos(storage_path, kind, position)), bazar_order_items(listing_id, price_czk, created_at, bazar_listings(id, brand, model, size_eu, bazar_listing_photos(storage_path, kind, position)))',
+      'id, status, buyer_id, seller_id, buyer_name, cancelled_by, cancel_reason, tracking_info, price_czk, shipping_czk, shipping_method, buyer_label_code, pickup_point_name, submission_code, packeta_barcode, created_at, listing_id, bazar_listings!bazar_orders_listing_id_fkey(id, brand, model, size_eu, inner_length_mm, bazar_listing_photos(storage_path, kind, position)), bazar_order_items(listing_id, price_czk, created_at, bazar_listings(id, brand, model, size_eu, bazar_listing_photos(storage_path, kind, position)))',
     )
     .eq('id', id)
     .maybeSingle()

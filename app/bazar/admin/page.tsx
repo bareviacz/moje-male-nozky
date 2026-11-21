@@ -22,7 +22,7 @@ export default async function AdminPage() {
   const [{ data: orders }, { data: reports }] = await Promise.all([
     supabase
       .from('bazar_orders')
-      .select('id, status, buyer_name, buyer_email, buyer_phone, pickup_point_name, pickup_point_id, price_czk, shipping_czk, submission_code, packeta_barcode, created_at, bazar_listings(id, brand, model)')
+      .select('id, status, buyer_name, buyer_email, buyer_phone, pickup_point_name, pickup_point_id, price_czk, shipping_czk, submission_code, packeta_barcode, created_at, bazar_listings!bazar_orders_listing_id_fkey(id, brand, model)')
       .neq('status', 'dokonceno')
       .neq('status', 'zruseno')
       .order('created_at', { ascending: true }),
